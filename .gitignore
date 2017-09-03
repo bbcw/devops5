@@ -65,4 +65,4 @@ target/
 
 # IDE
 .idea
-.idea/
+.idea/*
