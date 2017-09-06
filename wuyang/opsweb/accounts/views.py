@@ -53,7 +53,8 @@ class UserLogoutView(View):
         logout(request)
         return HttpResponseRedirect(reverse("user_login"))
 
-
+@method_decorator(login_required)
+@method_decorator(permission_required)
 def user_list_view(request):
     user_queryset = User.objects.all()
     for user in user_queryset:
@@ -67,7 +68,7 @@ class User_ListView(View):
         user_queryset = User.objects.all()
         return render(request, "user/userlist.html", {"userlist": user_queryset})
 
-class UserListView(TemplateView):
+class UserListView(LoginRequiredMixin,TemplateView):
     template_name = "user/userlist.html"
     per = 10
     def get_context_data(self, **kwargs):
@@ -86,9 +87,6 @@ class UserListView(TemplateView):
     @method_decorator(login_required)
     def get(self, request, *args, **kwargs):
         return super(UserListView, self).get(request, *args, **kwargs)
-    
-
-
 
 class LoginRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):

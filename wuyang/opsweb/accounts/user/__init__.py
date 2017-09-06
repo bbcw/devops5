@@ -6,8 +6,12 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import reverse
 from django.conf import settings
+from accounts.mixins import PermissionRequiredMixin
 
-class UserListView(LoginRequiredMixin,ListView):
+class UserListView(LoginRequiredMixin,PermissionRequiredMixin,ListView):
+    permission_required = "auth.view_user"
+    permission_redirect_field_name = "index"
+
     template_name = "user/userlist.html"
     model = User
     paginate_by = 8
@@ -62,11 +66,13 @@ class UserListView(LoginRequiredMixin,ListView):
         return range(start, end+1)
 
     #@method_decorator(permission_required("auth.add_user", login_url=reverse("error",kwargs={"next":"dashboard", "msg":"没有权限，请联系管理员"})))
-    @method_decorator(permission_required("auth.add_user",login_url="/"))
+    #@method_decorator(permission_required("auth.add_user",login_url="/"))
     def get(self, request, *args, **kwargs):
         return super(UserListView, self).get(request, *args, **kwargs)
 
-class ModifyUserStatusView(View):
+class ModifyUserStatusView(LoginRequiredMixin,PermissionRequiredMixin,View):
+    permission_required = "auth.change_user"
+    permission_redirect_field_name = "index"
     def post(self, request):
         uid = request.POST.get("uid", "")
         ret = {"status":0}
@@ -84,8 +90,9 @@ class ModifyUserStatusView(View):
 
         return JsonResponse(ret)
 
-
-class ModifyUserGroupView(View):
+class ModifyUserGroupView(LoginRequiredMixin,PermissionRequiredMixin,View):
+    permission_required = ("auth.change_user","auth.delete_user")
+    permission_redirect_field_name = "index"
     def get(self, request):
         print(request.GET)
         uid = request.GET.get('uid', "")

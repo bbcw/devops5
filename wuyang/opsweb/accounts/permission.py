@@ -2,23 +2,22 @@ from django.views.generic import ListView, TemplateView
 from django.contrib.auth.models import Permission, ContentType
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class PermissionListView(ListView):
+class PermissionListView(LoginRequiredMixin,ListView):
     model = Permission
     template_name = "user/permission_list.html"
     paginate_by = 10
     ordering = "id"
 
 
-class PermissionCreateView(TemplateView):
+class PermissionCreateView(LoginRequiredMixin,TemplateView):
     template_name = "user/add_permission.html"
 
     def get_context_data(self, **kwargs):
         context = super(PermissionCreateView, self).get_context_data(**kwargs)
         context['contenttypes'] = ContentType.objects.all()
         return context
-
-
     def post(self, request):
         content_type_id = request.POST.get("content_type")
         codename = request.POST.get("codename")
@@ -31,7 +30,6 @@ class PermissionCreateView(TemplateView):
 
         if not codename or codename.find(" ") >=0 :
             return redirect("error", next="permission_list", msg="codename 不合法")
-
         try:
             Permission.objects.create(codename=codename, content_type=content_type,name=name)
         except Exception as e:

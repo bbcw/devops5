@@ -10,7 +10,9 @@ from accounts.mixins import PermissionRequiredMixin
 
 
 
-class CreateIdcView(TemplateView):
+class CreateIdcView(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
+    permission_required = "resources.add_idc"
+    permission_redirect_field_name = "index"
     template_name = "idc/add_idc.html"
     def post(self, request):
 
@@ -52,6 +54,6 @@ class CreateIdcView(TemplateView):
 
 class IdcListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):
     permission_required = "resources.view_idc"
-    permission_redirect_field_name = "user_list"
+    permission_redirect_field_name = "index"
     model = Idc
     template_name = "idc/idc_list.html"

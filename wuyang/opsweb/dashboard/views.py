@@ -23,7 +23,7 @@ def userdetail(request, *args, **kwargs):
     print(kwargs)
     return HttpResponse("")
 
-class SuccessView(TemplateView):
+class SuccessView(LoginRequiredMixin,TemplateView):
     template_name = "public/success.html"
 
     def get_context_data(self, **kwargs):
@@ -39,7 +39,7 @@ class SuccessView(TemplateView):
         context['next_url'] = next_url
         return context
 
-class ErrorView(TemplateView):
+class ErrorView(LoginRequiredMixin,TemplateView):
     template_name = "public/error.html"
 
     def get_context_data(self, **kwargs):

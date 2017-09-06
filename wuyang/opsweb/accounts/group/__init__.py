@@ -5,15 +5,19 @@ from django.db import IntegrityError
 from django.shortcuts import redirect
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from accounts.mixins import PermissionRequiredMixin
 
 
-
-class GroupListView(LoginRequiredMixin,ListView):
+class GroupListView(LoginRequiredMixin,PermissionRequiredMixin,ListView):
+    permission_required = "auth.view_group"
+    permission_redirect_field_name = "index"
     model = Group
     template_name = "user/grouplist.html"
 
 
-class GroupCreateView(View):
+class GroupCreateView(LoginRequiredMixin,PermissionRequiredMixin,View):
+    permission_required= "auth.add_group"
+    permission_redirect_field_name = "index"
     def post(self, request):
         ret = {"status":0}
         group_name = request.POST.get("name", "")
@@ -35,9 +39,10 @@ class GroupCreateView(View):
         return JsonResponse(ret)
 
 
-class GroupUserList(LoginRequiredMixin,TemplateView):
+class GroupUserList(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
     template_name = "user/group_userlist.html"
-
+    permission_required = "auth.view_group"
+    permission_redirect_field_name = "index"
     def get_context_data(self, **kwargs):
         context = super(GroupUserList, self).get_context_data(**kwargs)
         # 将指定用户组内的成员列表取出来，然后传给模板
@@ -52,7 +57,10 @@ class GroupUserList(LoginRequiredMixin,TemplateView):
         return context
 
 
-class ModifyGroupPermissionList(TemplateView):
+class ModifyGroupPermissionList(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
+    permission_required = "auth.change_group"
+    permission_redirect_field_name = "index"
+
     template_name = "user/modify_group_permissions.html"
     
     def get_context_data(self, **kwargs):
