@@ -3,17 +3,21 @@ from django.contrib.auth.models import Permission, ContentType
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from accounts.mixins import PermissionRequiredMixin
 
-class PermissionListView(LoginRequiredMixin,ListView):
+class PermissionListView(LoginRequiredMixin,PermissionRequiredMixin,ListView):
+    permission_required = "auth.view_permission"
+    permission_redirect_field_name = "index"
     model = Permission
     template_name = "user/permission_list.html"
     paginate_by = 10
     ordering = "id"
 
 
-class PermissionCreateView(LoginRequiredMixin,TemplateView):
+class PermissionCreateView(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
     template_name = "user/add_permission.html"
-
+    permission_required = "auth.add_permission"
+    permission_redirect_field_name = "index"
     def get_context_data(self, **kwargs):
         context = super(PermissionCreateView, self).get_context_data(**kwargs)
         context['contenttypes'] = ContentType.objects.all()
