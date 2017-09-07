@@ -2,6 +2,8 @@ from django.views.generic import ListView,TemplateView
 from django.contrib.auth.models import Permission, ContentType
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.db import connection
 # Create your views here.
 
 class PermissionListView(LoginRequiredMixin, ListView):
@@ -14,7 +16,13 @@ class PermissionListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super(PermissionListView, self).get_queryset()
+        #获得搜索内容
         queryset = Permission.objects.all()
+        search_value = self.request.GET.get('search_value', None)
+        if search_value:
+            #Q连表查询 |：OR ~: != &: AND
+            queryset = queryset.filter(Q(codename__icontains=search_value)|Q(content_type_id__model__icontains=search_value))
+            #print(queryset.filter(Q(codename__contains=search_value)|Q(content_type_id__model__contains=search_value)).query)
         return queryset
 
     def get_page_range(self, page_obj):
@@ -25,11 +33,20 @@ class PermissionListView(LoginRequiredMixin, ListView):
             start = 1
         if end > page_obj.paginator.num_pages:
             end = page_obj.paginator.num_pages
-        return range(start, end + 1)
+        return range(start, end+1)
 
     def get_context_data(self, **kwargs):
         context = super(PermissionListView, self).get_context_data(**kwargs)
         context['page_range_obj'] = self.get_page_range(context['page_obj'])
+        #处理查询条件
+        search_data = self.request.GET.copy()
+        try:
+            search_data.pop("page")
+        except:
+            pass
+        context.update(search_data.dict())
+        context['search_data'] = "&" + search_data.urlencode()
+        print(context)
         return context
 
 class PermissionAddView(LoginRequiredMixin, TemplateView):
@@ -65,4 +82,6 @@ class PermissionAddView(LoginRequiredMixin, TemplateView):
             print(e)
             msg = "添加权限出错"
             return redirect("error", next="permission_add", msg=msg)
+
+
 
