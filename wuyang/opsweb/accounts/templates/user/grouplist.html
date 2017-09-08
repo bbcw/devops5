@@ -68,12 +68,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for permission in res.permission_list %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ permission.app }}</td>
+                    <tr id="all_permissons" >
+
                     </tr>
-                    {% endfor %}
+
                 </tbody>
 
             </table>
@@ -154,8 +152,15 @@
                     success: function(res){
                         //console.log(res)
                         if(res.status == 0){
-                            console.log(res)
+                            //console.log(res)
                             var show_permission_modal = $("#show_permission");
+                            var html
+                            $.each(res.permission_list,function(i,obj){
+                                html +="<tr><td>"+ i+ "</td> <td>"+obj.app+"</td><td>"+obj.model+"</td><td>"+obj.codename+"</td><td>"+ obj.name +"</td></tr>"
+                            })
+
+
+                            $("#all_permissons").html(html)
                             show_permission_modal.modal("show");
                         }else {
                             swal("查询异常")
