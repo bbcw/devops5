@@ -20,6 +20,7 @@ urlpatterns = [
         url(r'^userlist/$',group.GroupUserList.as_view(), name="group_userlist"),
         url(r'^permission/', include([
             url(r'^modify/$', group.ModifyGroupPermissionList.as_view(), name="group_permission_modify"),
+            url(r'^show/$',group.ShowGroupPermissionList.as_view(),name="group_permission_show"),
         ])),
     ])),
 

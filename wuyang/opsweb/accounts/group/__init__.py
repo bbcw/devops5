@@ -1,6 +1,6 @@
 from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.models import Group, Permission, ContentType
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404,HttpResponse
 from django.db import IntegrityError
 from django.shortcuts import redirect
 
@@ -92,3 +92,22 @@ class ModifyGroupPermissionList(LoginRequiredMixin,PermissionRequiredMixin,Templ
         else:
             group_obj.permissions.clear()
         return redirect("success", next="group_list")
+
+
+# 展示组内拥有的权限
+class ShowGroupPermissionList(LoginRequiredMixin,View):
+    def get(self,request):
+        group_object= Group.objects.get(name="group1")
+        permissions= group_object.permissions.all()
+        permission_list=[]
+        for permission in permissions:
+            #print(permission)
+            app = permission.content_type.app_label
+            model = permission.content_type.model
+            codename =permission.codename
+            name = permission.name
+            permission_dict = {app:app,model:model,codename:codename,name:name}
+            permission_list.append(permission_dict)
+        ret={"status":0,"permission_list":permission_list}
+        return JsonResponse(ret)
+
