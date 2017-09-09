@@ -43,37 +43,40 @@ class IdcCreateView(LoginRequiredMixin, TemplateView):
 
     def post(self, request):
         ret = {"status": 0}
-        name = request.POST.get("name", "")
-        idc_name = request.POST.get("idc_name", "")
-        address = request.POST.get("address", "")
-        username = request.POST.get("username", "")
-        user_phone = request.POST.get("user_phone", "")
-        email = request.POST.get("email", "")
+        if request.user.has_perm("resources.add_idc"):
+            name = request.POST.get("name", "")
+            idc_name = request.POST.get("idc_name", "")
+            address = request.POST.get("address", "")
+            username = request.POST.get("username", "")
+            user_phone = request.POST.get("user_phone", "")
+            email = request.POST.get("email", "")
 
-        try:
-            # 也可以直接判断对象是否存在
-            # # idc_alreday = Idc.objects.filter(name=name).first()
-            idc_alreday = Idc.objects.get(name=name)
-            idc_alreday_name = idc_alreday.name
-        except:
-            idc_alreday_name = ""
+            try:
+                # 也可以直接判断对象是否存在
+                # # idc_alreday = Idc.objects.filter(name=name).first()
+                idc_alreday = Idc.objects.get(name=name)
+                idc_alreday_name = idc_alreday.name
+            except:
+                idc_alreday_name = ""
 
-        if name and idc_name and address and username and user_phone and email:
-            if name == idc_alreday_name:
-                ret["errmsg"] = "idc already exist."
-                return redirect("error", next="idc_add", msg=ret["errmsg"])
+            if name and idc_name and address and username and user_phone and email:
+                if name == idc_alreday_name:
+                    ret["errmsg"] = "idc already exist."
+                    return redirect("error", next="idc_add", msg=ret["errmsg"])
+                else:
+                    data = {
+                        "name": name,
+                        "idc_name": idc_name,
+                        "address": address,
+                        "username": username,
+                        "user_phone": user_phone,
+                        "email": email
+                    }
+                    idc_obj = Idc(**data)
+                    idc_obj.save()
+                    return redirect("success", next="idc_list")
             else:
-                data = {
-                    "name": name,
-                    "idc_name": idc_name,
-                    "address": address,
-                    "username": username,
-                    "user_phone": user_phone,
-                    "email": email
-                }
-                idc_obj = Idc(**data)
-                idc_obj.save()
-                return redirect("success", next="idc_list")
+                ret["errmsg"] = "列表不能为空"
+                return redirect("error", next="idc_add", msg=ret["errmsg"])
         else:
-            ret["errmsg"] = "列表不能为空"
-            return redirect("error", next="idc_add", msg=ret["errmsg"])
+            return redirect("error", next="idc_list", msg="用户没有操作权限")
