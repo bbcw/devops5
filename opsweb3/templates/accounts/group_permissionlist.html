@@ -1,0 +1,37 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+<caption class="btn btn-info">
+    <a href="{% url 'group_list' %}" class="btn btn-info">返回</a>
+</caption>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>app</th>
+            <th>model</th>
+            <th>codename</th>
+            <th>name</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for group_permission_line in object_list %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ group_permission_line.content_type.app_label }}</td>
+            <td>{{ group_permission_line.content_type.model }}</td>
+            <td>{{ group_permission_line.codename }}</td>
+            <td>{{ group_permission_line.name }}</td>
+            <td>
+                <form method="post">{% csrf_token %}
+                    <input type="hidden" name="groupid" value="{{ gid }}">
+                    <input type="hidden" name="codename" value="{{ group_permission_line.codename }}">
+                    <button type="submit" class="btn btn-danger" >删除权限</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

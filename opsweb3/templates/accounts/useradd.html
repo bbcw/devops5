@@ -1,0 +1,97 @@
+{% extends 'public/layout.html' %}
+
+{% block body %}
+<caption >
+    <a class="btn btn-info col-sm-offset-1" href="{% url 'user_list' %}">返回</a>
+</caption>
+<form class="form-horizontal" >
+    <div class="form-group">
+        <label for="inputUsernam" class="col-sm-3 control-label"><span style="color: red">*</span> 用 户 名:</label>
+        <div class="col-sm-4">
+          <input type="text" class="form-control" id="inputUsernam" placeholder="请输入英文">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputEmail" class="col-sm-3 control-label"><span style="color: red">*</span> 邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱:</label>
+        <div class="col-sm-4">
+          <input type="email" class="form-control" id="inputEmail" placeholder="邮箱">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputPassword" class="col-sm-3 control-label"><span style="color: red">*</span>设置密码:</label>
+        <div class="col-sm-4">
+          <input type="password" class="form-control" id="inputPassword" placeholder="请设置密码">
+        </div>
+    </div>
+    <div class="form-group" id="verity_password">
+        <label for="inputPassword" class="col-sm-3 control-label"><span style="color: red">*</span>确认密码:</label>
+        <div class="col-sm-4">
+          <input type="password" class="form-control" id="verifyInputPassword" placeholder="请再次输入密码">
+        </div>
+    </div>
+    <div class="form-group"></div>
+    <div class="form-group">
+        <div class="col-sm-offset-4 col-sm-10">
+          <button type="submit" class="btn btn-primary" id="create_user_btn">提交</button>
+          <button type="reset"  class="btn btn-default" >重设</button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+
+{% block js %}
+<script>
+$(function () {
+    $("#create_user_btn").click(function (event) {
+        var username_input = $("#inputUsernam");
+        var email_input = $("#inputEmail");
+        var password_input = $("#inputPassword");
+        var verify_password_input = $("#verifyInputPassword");
+        var username = username_input.val();
+        var email = email_input.val();
+        var password = password_input.val();
+        var verify_password = verify_password_input.val();
+
+        event.preventDefault();
+        $("#create_user_btn").load(this.href);
+
+        if (username == "" || email == "" || password == "" || verify_password == ""){
+            swal("添加失败", "为必填", "error");
+            return false;
+        }
+
+        if (password.length < 8){
+            swal("密码不能少于8位", "", "error");
+            return false;
+        }
+
+        if (password == verify_password){
+            username_input.val("");
+            email_input.val("");
+            password_input.val("");
+            verify_password_input.val("");
+        }else {
+            swal("两次密码不一致", "", "error");
+            return false;
+        }
+
+        $.ajax({
+            url: "{% url 'user_add' %}",
+            type: "post",
+            data: {"username": username, "email": email, "password": password, "verify_password": verify_password },
+            success: function (res) {
+                
+            },
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken');
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+        });
+
+    })
+})
+</script>
+{% endblock %}
