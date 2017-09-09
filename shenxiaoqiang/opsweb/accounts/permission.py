@@ -3,7 +3,9 @@ from django.views.generic import ListView, TemplateView
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required
 
 class PermissionListView(LoginRequiredMixin, ListView):
     template_name = "user/permissionlist.html"
@@ -13,8 +15,11 @@ class PermissionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super(PermissionListView, self).get_queryset()  # 存放列表对象(对应表里数据的集合)
         permission_name = self.request.GET.get("search_name","")
-        if permission_name:
-            queryset = queryset.filter(Q(codename__icontains=permission_name)|Q(model=Permission.content_type(model="%s"%permission_name)))
+        try:
+            queryset.filter(codename__exact=permission_name)
+            queryset = queryset.filter(codename__exact=permission_name)
+        except:
+            pass
 
         return queryset
 
@@ -51,3 +56,8 @@ class CreatePermissionView(LoginRequiredMixin, TemplateView):
         except Exception as e:
             #ret["msg"] = "Idc already exists or other errors"
             return redirect("error",next="permission_add", msg=e.args)
+
+
+    @method_decorator(permission_required("permission.add_permission", login_url="permission_list"))
+    def get(self, request, *args, **kwargs):
+       return super(CreatePermissionView, self).get(request, *args, **kwargs)
