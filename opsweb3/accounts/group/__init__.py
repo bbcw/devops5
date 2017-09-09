@@ -18,7 +18,7 @@ class GroupListView(LoginRequiredMixin, ListView):
 class CreateGroupView(LoginRequiredMixin, View):
     def post(self, request):
         ret = {"status": 0}
-        if request.user.has_perm("auth_add_group"):
+        if request.user.has_perm("auth.add_group"):
             group_nmae = request.POST.get('name', "")
             if not group_nmae:
                 ret["status"] = 1
