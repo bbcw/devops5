@@ -152,8 +152,8 @@ class ModifyUserGroup(LoginRequiredMixin, View):
         # group_obj.user_set.remove(user_obj)
         return JsonResponse(ret)
 
-    @method_decorator(permission_required("auth.add_group", login_url="user_list"))
-    def get(self, request, *args, **kwargs):
-       return super(ModifyUserGroup, self).get(request, *args, **kwargs)
+    # @method_decorator(permission_required("auth.add_group", login_url="user_list"))
+    # def get(self, request, *args, **kwargs):
+    #     return super(ModifyUserGroup, self).get(request, *args, **kwargs)
 
 

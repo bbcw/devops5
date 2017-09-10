@@ -8,33 +8,53 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import permission_required
 
-from accounts.mixins import PermissionRequiredMixin
+# from accounts.mixins import PermissionRequiredMixin
+
+from accounts.forms import CreateGroupForm
+import json
 
 class GroupListView(LoginRequiredMixin, ListView):
     model = Group
     template_name = "user/grouplist.html"
 
+# class GroupCreateView(LoginRequiredMixin, View):
 class GroupCreateView(LoginRequiredMixin, View):
 
     def post(self, request):
         ret = {"status":0}
-        group_name = request.POST.get("name","")
-        if not group_name:
-            ret["status"] = 1
-            ret["errmsg"] = "Group name is Null!!!"
+    #     group_name = request.POST.get("name","")
+    #     if not group_name:
+    #         ret["status"] = 1
+    #         ret["errmsg"] = "Group name is Null!!!"
+    #
+    #     try:
+    #         g = Group(name=group_name)
+    #         g.save()
+    #     except IntegrityError as e:
+    #         # ret["status"] = 1
+    #         # ret["errmsg"] = "用户组已存在!!!"
+    #         return redirect("error", next="group_list", msg="Group is not exist!")
+    #     return JsonResponse(ret)
+    #
+    # @method_decorator(permission_required("auth.add_group", login_url="group_list"))
+    # def get(self, request, *args, **kwargs):
+    #     return super(GroupCreateView, self).get(request, *args, **kwargs)
 
-        try:
-            g = Group(name=group_name)
-            g.save()
-        except IntegrityError as e:
-            # ret["status"] = 1
-            # ret["errmsg"] = "用户组已存在!!!"
-            return redirect("error", next="group_list", msg="Group is not exist!")
-        return JsonResponse(ret)
+        # # 表单验证
+        groupform = CreateGroupForm(request.POST)
 
-    @method_decorator(permission_required("auth.add_group", login_url="group_list"))
-    def get(self, request, *args, **kwargs):
-        return super(GroupCreateView, self).get(request, *args, **kwargs)
+        if groupform.is_valid():
+            group = Group(**groupform.cleaned_data)
+            try:
+                group.save()
+                # return redirect("success", next="group_list", ret={"status":0})
+                return JsonResponse(ret)
+            except Exception as e:
+                return redirect("error", next="group_add", msg=e.args)
+        else:
+            return redirect("error", next="group_add",
+                            msg=json.dumps(json.loads(groupform.errors.as_json()), ensure_ascii=False))
+
 
 class GroupUserListView(LoginRequiredMixin, TemplateView):
     template_name = "user/groupuserlist.html"
