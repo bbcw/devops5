@@ -7,10 +7,11 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
-
+from .forms import CreateIdcForm
 
 
 class CreateIdcView(TemplateView):
+    """创建IDC页面逻辑 响应前端ajax"""
     template_name = "idc/add_idc.html"
     def post(self, request):
 
@@ -18,6 +19,8 @@ class CreateIdcView(TemplateView):
         #              'name': ['yz'], 'idc_name': ['北京亦庄机房'], 'address': ['北京亦庄机房'], 'username': ['rock'],
         #              'user_phone': ['12345678'], 'mail': ['rock@51reboot.com']} >
         # 1 先取到前端给后端post的数据
+
+        """
         name = request.POST.get("name", "")
         idc_name = request.POST.get("idc_name", "")
         address = request.POST.get("address", "")
@@ -48,7 +51,18 @@ class CreateIdcView(TemplateView):
         except Exception as e :
             return redirect("error", next="idc_add", msg=e.args)
         return redirect("success", next="idc_list")
+        """
 
+        idcform = CreateIdcForm(request.POST) #使用forms表单中CreateIdcForm进行验证
+        if idcform.is_valid():                #如果表单数据是有效的
+            idc = Idc(**idcform.cleaned_data)
+            try:
+                idc.save()
+                return redirect("success", next="idc_list")
+            except Exception as e:
+                return redirect("error", next="idc_list", msg=e.args)
+        else:
+            return redirect("error",next="idc_list",msg=json.dumps(json.loads(idcform.errors.as_json()),ensure_ascii=False))
 
 class IdcListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):
     permission_required = "resources.view_idc"

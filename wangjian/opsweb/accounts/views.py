@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 """
+函数视图的user login 和 logout
 # Create your views here.
 def login_view(request):
     if request.method == "GET":
@@ -26,16 +27,21 @@ def login_view(request):
             ret['status'] = 1
             ret['errmsg'] = "用户名或密码错误，请联系管理员"
         return JsonResponse(ret)
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("user_login"))
 """
 class UserLoginView(TemplateView):
+    """用户登录逻辑的类视图 TemplateView视图"""
     template_name = "public/login.html"
 
     def post(self, request):
         username = request.POST.get("username", "")
         userpass = request.POST.get("password", "")
-        user = authenticate(username=username, password=userpass)
+        user = authenticate(username=username, password=userpass)   # 对比数据库验证用户名和密码
         ret = {"status": 0, "errmsg": ""}
-        if user:
+        if user:            # 验证成功返回的对象如果存在进行下一步动作
             login(request, user)
             ret['next_url'] = request.GET.get("next") if request.GET.get("next", None) else "/"
         else:
@@ -43,18 +49,16 @@ class UserLoginView(TemplateView):
             ret['errmsg'] = "用户名或密码错误，请联系管理员"
         return JsonResponse(ret)
 
-"""
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect(reverse("user_login"))
-"""
+
 class UserLogoutView(View):
+    """用户登出逻辑的类视图 TemplateView视图"""
     def get(self, request):
         logout(request)
         return HttpResponseRedirect(reverse("user_login"))
 
 
 def user_list_view(request):
+    """没学类视图之前用的函数视图展示的user_list页面"""
     user_queryset = User.objects.all()
     for user in user_queryset:
         print(user.username, user.email)

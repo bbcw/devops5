@@ -4,18 +4,21 @@ from django.http import JsonResponse, Http404,QueryDict
 from django.db import IntegrityError
 from django.shortcuts import redirect
 from django.forms.models import model_to_dict
-
+from accounts.forms import CreateGroupForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+import json
 
 
 class GroupListView(LoginRequiredMixin,ListView):
+    """用户组展示视图"""
     model = Group
     template_name = "user/grouplist.html"
 
 
 class GroupCreateView(View):
+    """创建用户组视图"""
     def post(self, request):
+        """
         ret = {"status":0}
         group_name = request.POST.get("name", "")
         if not group_name:
@@ -28,14 +31,28 @@ class GroupCreateView(View):
         except IntegrityError:
             ret['status'] = 1
             ret['errmsg'] = "用户组已存在"
+
+        #g = Group()
+        #g.name = group_name
+        #g.save()
+
+        return JsonResponse(ret)
         """
-        g = Group()
-        g.name = group_name
-        g.save()
-        """
+        ret = {"status":0}
+        groupform = CreateGroupForm(request.POST)       #使用forms中CreateGroupForm 进行验证
+        if  groupform.is_valid():
+            g = Group(**groupform.cleaned_data)
+            try:
+                g.save()
+                return JsonResponse(ret)
+            except IntegrityError:
+                ret['status'] = 1
+                ret['errmsg'] = "用户组已存在"
         return JsonResponse(ret)
 
+
 class GroupDeletView(ListView):
+    """删除用户组视图 响应前端 ajax 请求"""
     template_name = "user/grouplist.html"
     def delete(self,request):
         ret = {"status": 0}
@@ -56,6 +73,7 @@ class GroupDeletView(ListView):
         return JsonResponse(ret)
 
 class GroupUserList(LoginRequiredMixin,TemplateView):
+    """展示用户组内成员视图逻辑"""
     template_name = "user/group_userlist.html"
 
     def get_context_data(self, **kwargs):
@@ -73,9 +91,13 @@ class GroupUserList(LoginRequiredMixin,TemplateView):
 
 
 class ModifyGroupPermissionList(TemplateView):
+    """修改用户组权限视图逻辑"""
     template_name = "user/modify_group_permissions.html"
     
     def get_context_data(self, **kwargs):
+        """
+        展示用户组所拥有权限逻辑
+        """
         context = super(ModifyGroupPermissionList, self).get_context_data(**kwargs)
         context["contenttypes"] = ContentType.objects.all()
         context["group"] = self.request.GET.get("gid")
@@ -83,6 +105,7 @@ class ModifyGroupPermissionList(TemplateView):
         return context
 
     def get_group_permissions(self, groupid):
+        """从数据库中搜索用户组权限"""
         try:
             group_obj = Group.objects.get(pk=groupid)
             return [p.id for p in group_obj.permissions.all()]
@@ -91,6 +114,7 @@ class ModifyGroupPermissionList(TemplateView):
 
 
     def post(self, request):
+        """给用户组添加权限逻辑"""
         permission_id_list = request.POST.getlist("permission", [])
         groupid = request.POST.get("groupid", 0)
         try:
@@ -106,6 +130,7 @@ class ModifyGroupPermissionList(TemplateView):
         return redirect("success", next="group_list")
 
 class GroupPermissionList(TemplateView):
+    """展示用户组所拥有权限列表的页面逻辑"""
     template_name = "user/group_permission_list.html"
     #model = Permission
     # model = Group
@@ -122,9 +147,10 @@ class GroupPermissionList(TemplateView):
         try:
             group_obj = Group.objects.get(pk=gid)
             context['object_list'] = group_obj.permissions.all()
+            context['groupname'] = group_obj.name
         except Group.DoesNotExist:
             return redirect("error",next="group_list",msg="用户组不存在")
 
-        context['groupname'] = group_obj.name
+
         return context
 

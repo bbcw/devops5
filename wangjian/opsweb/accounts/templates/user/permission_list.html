@@ -3,8 +3,20 @@
 {% block body %}
     <table class="table table-striped">
         <caption>
-            <a class="btn btn-primary" href="{% url 'permission_create' %}">创建权限</a>
+            <form class="from-inline">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="model or codename">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">搜索</button>
+                <a class="btn btn-primary" href="{% url 'permission_create' %}">创建权限</a>
+            </form>
+{#            <a class="btn btn-primary" href="{% url 'permission_create' %}">创建权限</a>#}
+{#            <input type="text" name="search_model" value="{{ search_model }}" placeholder="model">#}
+{#            <button type="submit" class="btn btn-primary">搜索</button>#}
         </caption>
+
         <tr>
             <th>#</th>
             <th>app</th>
