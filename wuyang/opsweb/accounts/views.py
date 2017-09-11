@@ -8,6 +8,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from . import forms
+import json
 
 """
 # Create your views here.
@@ -27,21 +29,32 @@ def login_view(request):
             ret['errmsg'] = "用户名或密码错误，请联系管理员"
         return JsonResponse(ret)
 """
+
+
 class UserLoginView(TemplateView):
     template_name = "public/login.html"
 
     def post(self, request):
-        username = request.POST.get("username", "")
-        userpass = request.POST.get("password", "")
-        user = authenticate(username=username, password=userpass)
-        ret = {"status": 0, "errmsg": ""}
-        if user:
-            login(request, user)
-            ret['next_url'] = request.GET.get("next") if request.GET.get("next", None) else "/"
+        form_view = forms.LoginForm(request.POST)
+        ret = {"status": 0, "errmsg": ""} 
+        if form_view.is_valid():
+            data=form_view.cleaned_data
+            user = authenticate(username=data["username"],password=data["password"])
+            if user:
+                login(request, user)
+                ret['next_url'] = request.GET.get("next") if request.GET.get("next", None) else "/"
+            else:
+                ret['status'] = 1
+                ret['errmsg'] = "用户名或密码错误，请联系管理员"
         else:
+            value_data=form_view.errors.as_data()
+            value_json=form_view.errors.as_json()
             ret['status'] = 1
-            ret['errmsg'] = "用户名或密码错误，请联系管理员"
+            ret['errmsg'] = value_json
+            
         return JsonResponse(ret)
+
+
 
 """
 def logout_view(request):
