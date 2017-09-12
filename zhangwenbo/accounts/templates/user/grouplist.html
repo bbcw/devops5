@@ -1,5 +1,10 @@
 {% extends "public/layout.html" %}
 
+{% block breadcrumb %}
+    <li><a href="{% url 'group_list' %}">用户组管理</a><span class="divider"></span></li>
+    <li class="active">用户组列表</li>
+{% endblock %}
+
 {% block body %}
     <table class="table table-striped">
         {% if perms.auth.add_group %}
@@ -17,12 +22,18 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ group_obj.name }}</td>
                 <td>
+                    {% if perms.auth.view_group %}
                     <a type="button" class="btn btn-primary btn-sm" href="{% url 'groupuser_list' %}?gid={{ group_obj.id }}" id="get_user_groups" >成员列表</a>
-                    <button type="button"  class="btn btn-success btn-sm view_permission" gid={{ group_obj.id }} groupname={{ group_obj.name }} >查看权限</button>
-                  {% if perms.auth.change_permission %}
-                  <a  class="btn btn-info btn-sm" href="{% url 'group_permission_modify' %}?gid={{ group_obj.id }}">修改权限</a>
-                  {% endif %}
-                    <button type="button" class="btn btn-danger btn-sm del_group" groupid="{{ group.id }}">删除</button>
+                    {% endif %}
+                    {% if perms.auth.view_permission %}
+                    <a type="button"  class="btn btn-success btn-sm" href="{% url 'group_permission_list' %}?gid={{ group_obj.id }}" >查看权限</a>
+                    {% endif %}
+                    {% if perms.auth.change_permission %}
+                    <a class="btn btn-info btn-sm" href="{% url 'group_permission_modify' %}?gid={{ group_obj.id }}">修改权限</a>
+                    {% endif %}
+                    {% if perms.auth.delete_group %}
+                        <button type="button" class="btn btn-danger btn-sm del_group" groupid="{{ group_obj.id }}" groupname="{{ group_obj.name }}">删除</button>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
@@ -50,35 +61,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="group_permission" aria-hidden="true">
-	<div class="modal-dialog">
-	    <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h4 id="group_permission_modal_title"></h4>
-            </div>
-
-
-    <table class="table table-striped">
-        <tr>
-            <th>#</th>
-            <th>app</th>
-            <th>model</th>
-            <th>codename</th>
-            <th>name</th>
-            <th>操作</th>
-        </tr>
-        <tbody id="group_permission_view">
-        </tbody>
-    </table>
-
-            <div class="modal-footer">
-                <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="取消">
-            </div>
-
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block js %}
@@ -128,35 +110,49 @@ $(function () {
         })
     });
 
-        //查看组权限
-    $(".view_permission").click(function () {
-        var get_permission_modal = $("#group_permission");
-        var get_gid = $(this).attr("gid");
-        var get_groupname = $(this).attr("groupname");
-        console.log(get_groupname);
-        $("#group_permission_modal_title").html("组 <b>" + get_groupname + "</b> 权限列表");
-        get_permission_modal.modal("show");
-
-        $.ajax({
-            url: "{% url 'group_permission_list' %}",
-            type: "get",
-            data: {"name": get_gid },
-            success: function (contenttypes) {
-                console.log(contenttypes);
-                $.each(contenttypes, function(i, contenttype){
-                    html = '<tr><td>'+ contenttype.codename +'</td></tr>';
-                $("#group_permission_view").html(html);
-                });
-
-            },
-            beforeSend: function (xhr, settings) {
+    //删除用户组
+    $(".del_group").click(function () {
+        var group_id = $(this).attr("groupid");
+        var gname = $(this).attr("groupname");
+        //触发swal插件，询问是否删除
+       swal({
+          title: "你确定?",
+          text: "请确认要删除"+gname+"用户组吗？",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "是的，删除它",
+           cancelButtonText: "取消",
+          closeOnConfirm: false
+        }, function(){
+           $.ajax({
+               url: "{% url 'group_delete' %}",
+               type: "delete",
+               data: {"gname": group_id },
+               success: function (res) {
+                   if (res.status == 0) {
+                       swal({
+                           "title": "删除成功",
+                           "text": "",
+                           "type": "success"
+                       }, function () {
+                           setTimeout(function () {
+                               window.location.reload();
+                           }, 100)
+                       });
+                   } else {
+                       swal("删除失败", res.errmsg, "error");
+                   }
+               },
+               beforeSend: function (xhr, settings) {
                 var csrftoken = getCookie('csrftoken');
                 if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
                     xhr.setRequestHeader("X-CSRFToken", csrftoken)
                 }
             }
-        })
-
+            });
+            return false
+            });
 
     })
 })

@@ -26,11 +26,7 @@ class UserLoginView(TemplateView):
             ret['errmsg'] = "用户名或密码错误，请联系管理员"
         return JsonResponse(ret)
 
-"""
-def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect(reverse("user_login"))
-"""
+
 class UserLogoutView(View):
     def get(self, request):
         logout(request)

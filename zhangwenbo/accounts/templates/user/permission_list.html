@@ -1,5 +1,10 @@
 {% extends "public/layout.html" %}
 
+{% block breadcrumb %}
+    <li><a href="{% url 'group_list' %}">用户组管理</a><span class="divider"></span></li>
+    <li class="active">权限列表</li>
+{% endblock %}
+
 {% block body %}
     <table class="table table-striped">
         <caption>
@@ -10,7 +15,9 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-primary">权限搜索</button>
-            <a  href="{% url 'permission_add' %}" class="btn btn-primary" id="add_group">添加权限</a>
+            {% if perms.auth.add_permission %}
+                <a  href="{% url 'permission_add' %}" class="btn btn-primary" id="add_group">添加权限</a>
+            {% endif %}
         </form>
 
         </caption>
@@ -30,7 +37,11 @@
                 <td>{{ permission.codename }}</td>
                 <td>{{ permission.name }}</td>
                 <td>
-                    <button class="btn btn-primary">修改</button>
+                    {% if perms.auth.change_permission %}
+                        <button class="btn btn-primary">修改</button>
+                    {% else %}
+                        <button class="btn btn-default disabled">修改</button>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

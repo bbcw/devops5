@@ -5,9 +5,11 @@ from django.shortcuts import redirect
 from accounts.mixins import PermissionRequiredMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import QueryDict
+from accounts.forms import CreatePermissionForm
+import json
 
 class PermissionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    permission_required = "auth.add_permission"
+    permission_required = "auth.view_permission"
     model = Permission
     template_name = "user/permission_list.html"
     paginate_by = 8
@@ -49,6 +51,7 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin,TemplateView):
         return context
 
     def post(self, request):
+        '''
         content_type_id = request.POST.get("contect_type", "")
         codename = request.POST.get("codename", "")
         name = request.POST.get("name", "")
@@ -66,3 +69,14 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin,TemplateView):
         except Exception as e:
             return redirect("error", next="permission_list", msg=e.args)
         return redirect("sucess", next="permission_list")
+        '''
+        permissionform = CreatePermissionForm(request.POST)
+        if permissionform.is_valid():
+            permission = Permission(**permissionform.cleaned_data)
+            try:
+                permission.save()
+                return redirect("success", next="permission_list")
+            except Exception as e:
+                return redirect("error", next="permission_list", msg=e.args)
+        else:
+            return redirect("error", next="permission_list", msg=json.dumps(json.loads(permissionform.errors.as_json()), ensure_ascii=False))

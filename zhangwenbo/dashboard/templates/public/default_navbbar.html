@@ -4,14 +4,22 @@
         <ul class="nav" id="side-menu">  <!--菜单列表-->
             <li><a href="/"><i class="fa fa-home fa-fw"></i>控制面板</a></li>
             <li> <!--用户管理-->
+            {% if perms.auth.view_user %}
                 <a href="#"><i class="fa fa-user fa-fw" ></i>用户管理<span class="fa arrow"></span></a>
                 <ul class="nav nav-second-level  collapse">
                     <li>
-                        <a href="{% url 'user_list' %}" class="menu-link">用户列表</a>
-                        <a href="{% url 'group_list' %}" class="menu-link">用户组管理</a>
-                        <a href="{% url 'permission_list' %}" class="menu-link">权限管理</a>
+                        {% if perms.auth.view_user %}
+                            <a href="{% url 'user_list' %}" class="menu-link">用户列表</a>
+                        {% endif %}
+                        {% if perms.auth.view_group %}
+                            <a href="{% url 'group_list' %}" class="menu-link">用户组管理</a>
+                        {% endif %}
+                        {% if perms.auth.view_permission %}
+                            <a href="{% url 'permission_list' %}" class="menu-link">权限管理</a>
+                        {% endif %}
                     </li>
                 </ul>
+            {% endif %}
             </li> <!--用户管理 end-->
             <li><!--资产平台-->
                 <a href="#" ><i class="fa fa-database fa-fw"></i>资源管理<span class="fa arrow"></span></a>
@@ -23,7 +31,9 @@
                         <a href="#" class="menu-link">业务线管理</a>
                     </li>
                     <li>
-                        <a href="{% url 'idc_list' %}" class="menu-link">idc列表</a>
+                        {% if perms.resources.view_idc %}
+                        <a href="{% url 'idc_list' %}" class="menu-link">IDC列表</a>
+                        {% endif %}
                     </li>
                 </ul>
             </li> <!--CMDB资产平台结束-->

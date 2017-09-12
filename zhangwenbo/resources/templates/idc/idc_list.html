@@ -1,10 +1,14 @@
 {% extends "public/layout.html" %}
 
+{% block breadcrumb %}
+    <li><a href="{% url 'idc_list' %}">IDC列表</a><span class="divider"></span></li>
+{% endblock %}
+
 {% block body %}
     <table class="table table-striped">
         {% if perms.resources.add_idc %}
         <caption>
-            <a  href="{% url 'idc_add' %}" class="btn btn-primary" id="add_group">创建idc</a>
+            <a  href="{% url 'idc_add' %}" class="btn btn-primary" id="add_group">创建IDC</a>
         </caption>
         {% endif %}
         <tr>
@@ -27,7 +31,11 @@
                 <td>{{ idc_obj.email }}</td>
                 <td>{{ idc_obj.username }}</td>
                 <td>
-                    <button type="button" class="btn btn-danger btn-sm del_idc" idc_id="{{ idc_obj.id }}">删除</button>
+                    {% if perms.resources.delete_idc %}
+                        <button type="button" class="btn btn-danger btn-sm del_idc" idc_id="{{ idc_obj.id }}">删除</button>
+                    {% else %}
+                        <button type="button" class="btn btn-default btn-sm disabled">删除</button>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

@@ -14,5 +14,5 @@ class Idc(models.Model):
     username = models.CharField("机房联系人", max_length=32, null=True)
 
     ##定义此模块使用的数据表名称
-    class Meta:
-        db_table = "resources_idc"
+    # class Meta:
+    #     db_table = "resources_idc"

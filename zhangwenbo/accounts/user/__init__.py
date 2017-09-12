@@ -3,9 +3,10 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
 from django.http import JsonResponse, QueryDict
+from accounts.models import Profile
 
 class UserListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):
-    permission_required = "auth.add_user"
+    permission_required = "auth.view_user"
     template_name = "user/userlist.html"
     model = User
     paginate_by = 8
@@ -107,9 +108,9 @@ class ModifyUserGroupView(LoginRequiredMixin, View):
         user_obj.groups.add(group_obj)
         return JsonResponse(ret)
 
-    def delete(self,request):
+    def delete(self, request):
         ret = {"status":0}
-        if not request.user.has_perm('auth.del_group'):
+        if not request.user.has_perm('auth.delete_user'):
             ret['status'] = 1
             ret['errmsg'] = "没有权限，请联系管理员"
             return JsonResponse(ret)

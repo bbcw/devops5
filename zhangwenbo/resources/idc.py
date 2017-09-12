@@ -5,6 +5,8 @@ from django.db import IntegrityError
 from django.http import JsonResponse, QueryDict
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
+from resources.forms import CreateIdcForm
+import json
 
 class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
@@ -14,6 +16,7 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = "idc/add_idc.html"
 
     def post(self, request):
+        '''
         name = request.POST.get("name", "")
         if name:
             try:
@@ -30,12 +33,26 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
                 return redirect("error", next="idc_add", msg="idc名称已创建，请重新输入")
             return redirect("success", next="idc_list")
         return redirect("error", next="idc_add", msg="idc名称没输入，请重新输入")
+        '''
+        idcform = CreateIdcForm(request.POST)
+        print(idcform)
+        if idcform.is_valid():
+            idc = Idc(**idcform.cleaned_data)
+            print(idc)
+            try:
+                idc.save()
+                return redirect("success", next="idc_list")
+            except Exception as e:
+                return redirect("error", next="idc_add", msg=e.args)
+        else:
+            return redirect("error", next="idc_add", msg=json.dumps(json.loads(idcform.errors.as_json()), ensure_ascii=False))
+
 
 class IdcViewList(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     '''
     IDC列表
     '''
-    permission_required = "resources.add_idc"
+    permission_required = "resources.view_idc"
     model = Idc
     template_name = "idc/idc_list.html"
 
@@ -45,7 +62,7 @@ class IdcDelete(LoginRequiredMixin, View):
     """
     def delete(self, request):
         ret = {"status":0}
-        if not request.user.has_perm('resources.del_idc'):
+        if not request.user.has_perm('resources.delete_idc'):
             ret['status'] = 1
             ret['errmsg'] = "没有权限，请联系管理员"
             return JsonResponse(ret)

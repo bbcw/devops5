@@ -18,6 +18,7 @@ urlpatterns = [
         url(r'^$', group.GroupListView.as_view(), name="group_list"),
         url(r'^groupuserlist/', group.GroupuserListView.as_view(), name="groupuser_list"),
         url(r'^create/$', group.GroupCreateView.as_view(), name="group_create"),
+        url(r'^delete/$', group.GroupDeleteView.as_view(), name="group_delete"),
         url(r'^permission/', include([
             url(r'^modify/$', group.ModifyGroupPermissionList.as_view(), name="group_permission_modify"),
             url(r'^list/$', group.GroupPermissionListView.as_view(), name="group_permission_list"),

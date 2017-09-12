@@ -2,7 +2,7 @@
 
 {% block breadcrumb %}
     <li><a href="{% url 'group_list' %}">用户组管理</a><span class="divider"></span></li>
-    <li class="active">用户列表</li>
+    <li class="active">用户组的用户列表</li>
 {% endblock %}
 
 {% block body %}
@@ -26,7 +26,11 @@
                 <td>{{ user_obj.username }}</td>
                 <td>{{ user_obj.email }}</td>
                 <td>
-                    <button type="button" class="btn btn-danger btn-sm del_group" data="{{ user_obj.username }}">删除</button>
+                    {% if perms.auth.delete_group %}
+                        <button type="button" class="btn btn-danger btn-sm del_group" data="{{ user_obj.username }}">删除</button>
+                    {% else %}
+                        <button type="button" class="btn btn-default btn-sm disabled">删除</button>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
