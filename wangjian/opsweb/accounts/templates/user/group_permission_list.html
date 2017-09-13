@@ -1,0 +1,23 @@
+{% extends "public/layout.html" %}
+{% block body %}
+    <table class="table table-striped">
+        <h4>{{ groupname }}组权限列表：</h4>
+        <tr>
+            <th>#</th>
+            <th>app</th>
+            <th>model</th>
+            <th>codename</th>
+            <th>name</th>
+        </tr>
+
+        {% for p in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.content_type.app_label }}</td>
+                <td>{{ p.content_type.model }}</td>
+                <td>{{ p.codename }}</td>
+                <td>{{ p.name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

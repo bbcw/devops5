@@ -1,0 +1,71 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            {% if perms.resources.add_idc %}
+            <a  href="{% url 'idc_add' %}" class="btn btn-primary" id="add_group">创建idc</a>
+            {% endif %}
+        </caption>
+        <tr>
+            <th>#</th>
+            <th>简称</th>
+            <th>idc名称</th>
+            <th>地址</th>
+            <th>电话</th>
+            <th>email</th>
+            <th>联系人</th>
+            <th>操作</th>
+        </tr>
+        {% for idc_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ idc_obj.name }}</td>
+                <td>{{ idc_obj.idc_name }}</td>
+                <td>{{ idc_obj.address }}</td>
+                <td>{{ idc_obj.phone }}</td>
+                <td>{{ idc_obj.email }}</td>
+                <td>{{ idc_obj.username }}</td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm delete_idc" data="{{ idc_obj.id }}">删除</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+{% block js %}
+    <script>
+    $(function(){
+        $(".delete_idc").click(function(){
+            var click_obj = $(this);
+            var idc_id = click_obj.attr("data");
+            console.log(idc_id);
+            $.ajax({
+                url: "{% url 'idc_list' %}",
+                type: "delete",
+                data:{"id":idc_id},
+                success: function (res) {
+                    if (res.status != 0){
+                        swal("操作失败", res.errmsg, "error")
+                    }else{
+                        click_obj.parents("tr").remove();
+                        swal("操作成功", '', "success")
+                    }
+                },
+
+                beforeSend: function (xhr, settings) {
+                    var csrftoken = getCookie('csrftoken');
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                    }
+                }
+            });
+
+        })
+    });
+
+
+    </script>
+
+{% endblock %}
