@@ -6,4 +6,6 @@ this is homework 5 is qicheng at 201709111556
 4 查看指定组的权限列表
 5 删除group
 1 group内有成员，不能删除
-
+2 group内有权限，不能删除
+所有输入提交使用表单验证11发的示范
+11
