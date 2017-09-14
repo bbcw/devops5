@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
-
+from .forms import CreateIdcForm
 
 
 class CreateIdcView(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
@@ -15,11 +15,7 @@ class CreateIdcView(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
     permission_redirect_field_name = "index"
     template_name = "idc/add_idc.html"
     def post(self, request):
-
-        #< QueryDict: {'csrfmiddlewaretoken': ['tBM48BGH7RZNbgEgZlAToE63SfYJVIutOqjgebQMrhE6IEMnaVtNZLeSsiLWfjTq'],
-        #              'name': ['yz'], 'idc_name': ['北京亦庄机房'], 'address': ['北京亦庄机房'], 'username': ['rock'],
-        #              'user_phone': ['12345678'], 'mail': ['rock@51reboot.com']} >
-        # 1 先取到前端给后端post的数据
+        '''
         name = request.POST.get("name", "")
         idc_name = request.POST.get("idc_name", "")
         address = request.POST.get("address", "")
@@ -44,12 +40,26 @@ class CreateIdcView(LoginRequiredMixin,PermissionRequiredMixin,TemplateView):
         idc.username = username
         idc.phone = phone
         idc.email = email
-
         try:
             idc.save()
         except Exception as e :
             return redirect("error", next="idc_add", msg=e.args)
         return redirect("success", next="idc_list")
+        '''
+        form_data = CreateIdcForm(request.POST)
+        print(form_data.is_valid())
+        if form_data.is_valid():
+            data = form_data.cleaned_data
+            print(data)
+            try:
+                idc=Idc(**data)
+                idc.save()
+            except  Exception as e:
+                return redirect("error", next="idc_add", msg=e.args)
+        else:
+            return redirect("error", next="idc_add", msg="验证错误")
+        return redirect("success", next="idc_list")
+
 
 
 class IdcListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):

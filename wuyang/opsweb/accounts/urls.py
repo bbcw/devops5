@@ -1,5 +1,5 @@
 from django.conf.urls import include, url
-from . import views, user, group, permission
+from accounts import views, user, group, permission
 
 urlpatterns = [
     url(r'^login/$', views.UserLoginView.as_view(), name='user_login'),
@@ -21,6 +21,7 @@ urlpatterns = [
         url(r'^permission/', include([
             url(r'^modify/$', group.ModifyGroupPermissionList.as_view(), name="group_permission_modify"),
             url(r'^show/$',group.ShowGroupPermissionList.as_view(),name="group_permission_show"),
+            url(r'^delete/$',group.GroupDeleteView.as_view(),name="group_permission_delete")
         ])),
     ])),
 

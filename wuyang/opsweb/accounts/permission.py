@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
-from django.db.models import Q
+
 
 class PermissionListView(LoginRequiredMixin,PermissionRequiredMixin,ListView):
     permission_required = "auth.view_permission"
@@ -52,7 +52,6 @@ class PermissionCreateView(LoginRequiredMixin,PermissionRequiredMixin,TemplateVi
             content_type = ContentType.objects.get(pk=content_type_id)
         except ContentType.DoesNotExist:
             return redirect("error", next="permission_list", msg="模型不存在")
-
         if not codename or codename.find(" ") >=0 :
             return redirect("error", next="permission_list", msg="codename 不合法")
         try:

@@ -3,9 +3,11 @@ from django.contrib.auth.models import Group, Permission, ContentType
 from django.http import JsonResponse, Http404,HttpResponse
 from django.db import IntegrityError
 from django.shortcuts import redirect
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
+from accounts.forms import GroupForm
+from django.http import QueryDict
+import  json
 
 
 class GroupListView(LoginRequiredMixin,PermissionRequiredMixin,ListView):
@@ -98,12 +100,14 @@ class ModifyGroupPermissionList(LoginRequiredMixin,PermissionRequiredMixin,Templ
 class ShowGroupPermissionList(LoginRequiredMixin,View):
     def get(self,request):
         group_name = request.GET.get("name","")
+        print(group_name)
         if group_name:
             try:
                 group_object= Group.objects.get(name=group_name)
                 permissions= group_object.permissions.all()
             except Exception as e:
-                ret={"status":1,"errmsg":e}
+                print(e)
+                ret={"status":1,"errmsg":e.args}
                 return JsonResponse(ret)
             permission_list=[]
             for permission in permissions:
@@ -117,4 +121,29 @@ class ShowGroupPermissionList(LoginRequiredMixin,View):
         else:
             ret={"status":1,"errmsg":"请输入组名"}
         return JsonResponse(ret)
+
+
+# 删除组
+# 有用户的不能删，有权限的不能删
+class GroupDeleteView(LoginRequiredMixin,View):
+    def delete(self,request):
+        res={"status":0}
+        query_data = QueryDict(request.body)
+        group_form = GroupForm(query_data)
+        if group_form.is_valid():
+            try:
+                Group.objects.get(name__exact=group_form.cleaned_data.get("name")).delete()
+            except Exception as e:
+                res["status"]=1
+                res["errmsg"]=e.args[0]
+                return  JsonResponse(res)
+            res["status"]=0
+        else:
+            res["status"]=1
+            res["errmsg"]=json.dumps(json.loads(group_form.errors.as_json()),ensure_ascii=False)
+            #print(json.dumps(json.loads(group_form.errors_as_json()),ensure_ascii=False))
+            #return redirect("error",next="group_list",msg=json.dumps(json.loads(group_form.errors_as_json()),ensure_ascii=False))
+        return  JsonResponse(res)
+        #return redirect("success",next="group_list")
+
 
