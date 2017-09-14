@@ -1,0 +1,31 @@
+{% extends "public/layout.html" %}
+
+{% block breadcrumb %}
+    <li><a href="{% url 'group_list' %}">用户组管理</a><span class="divider"></span></li>
+    <li class="active">用户组权限列表</li>
+{% endblock %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+            <b>用户组{{ groupname }}的权限列表</b>
+        </caption>
+        <tr>
+            <th>#</th>
+            <th>app</th>
+            <th>model</th>
+            <th>codename</th>
+            <th>name</th>
+        </tr>
+        {% for permission in group_permissions %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ permission.content_type.app_label }}</td>
+                <td>{{ permission.content_type.model }}</td>
+                <td>{{ permission.codename }}</td>
+                <td>{{ permission.name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
