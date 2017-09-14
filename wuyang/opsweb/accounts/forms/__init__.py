@@ -34,8 +34,6 @@ class GroupForm(forms.Form):
             raise forms.ValidationError("用户组不存在")
         except Exception as e:
             raise forms.ValidationError("验证获取用户组发现"+e+"异常")
-        #print(group.permissions)
-        #print(group.user_set.all())
         if group.permissions.all():
             raise forms.ValidationError("组内部不可以有权限")
         elif group.user_set.all():
