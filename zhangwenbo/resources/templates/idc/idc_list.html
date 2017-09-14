@@ -1,0 +1,79 @@
+{% extends "public/layout.html" %}
+
+{% block breadcrumb %}
+    <li><a href="{% url 'idc_list' %}">IDC列表</a><span class="divider"></span></li>
+{% endblock %}
+
+{% block body %}
+    <table class="table table-striped">
+        {% if perms.resources.add_idc %}
+        <caption>
+            <a  href="{% url 'idc_add' %}" class="btn btn-primary" id="add_group">创建IDC</a>
+        </caption>
+        {% endif %}
+        <tr>
+            <th>#</th>
+            <th>name</th>
+            <th>idc_name</th>
+            <th>address</th>
+            <th>phone</th>
+            <th>email</th>
+            <th>username</th>
+            <th>操作</th>
+        </tr>
+        {% for idc_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ idc_obj.name }}</td>
+                <td>{{ idc_obj.idc_name }}</td>
+                <td>{{ idc_obj.address }}</td>
+                <td>{{ idc_obj.phone }}</td>
+                <td>{{ idc_obj.email }}</td>
+                <td>{{ idc_obj.username }}</td>
+                <td>
+                    {% if perms.resources.delete_idc %}
+                        <button type="button" class="btn btn-danger btn-sm del_idc" idc_id="{{ idc_obj.id }}">删除</button>
+                    {% else %}
+                        <button type="button" class="btn btn-default btn-sm disabled">删除</button>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+{% block js %}
+    <script>
+    $(function () {
+        $(".del_idc").click(function () {
+            var idcid = $(this).attr("idc_id");
+            $.ajax({
+                url: "{% url 'idc_delete' %}",
+                type: "delete",
+                data: {"idcid": idcid},
+                success: function (res) {
+                       if (res.status == 0) {
+                           swal({
+                               "title": "删除成功",
+                               "text": "",
+                               "type": "success"
+                           }, function () {
+                               setTimeout(function () {
+                                   window.location.reload();
+                               }, 100)
+                           });
+                       } else {
+                           swal("删除失败", res.errmsg, "error");
+                       }
+                },
+                beforeSend: function (xhr, settings) {
+                    var csrftoken = getCookie('csrftoken');
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                    }
+                }
+            });
+        })
+
+    })
+    </script>
+{% endblock %}

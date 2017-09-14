@@ -1,0 +1,160 @@
+{% extends "public/layout.html" %}
+
+{% block breadcrumb %}
+    <li><a href="{% url 'group_list' %}">用户组管理</a><span class="divider"></span></li>
+    <li class="active">用户组列表</li>
+{% endblock %}
+
+{% block body %}
+    <table class="table table-striped">
+        {% if perms.auth.add_group %}
+        <caption>
+            <button type="button" class="btn btn-primary" id="add_group">创建用户组</button>
+        </caption>
+        {% endif %}
+        <tr>
+            <th>#</th>
+            <th>组名</th>
+            <th>操作</th>
+        </tr>
+        {% for group_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ group_obj.name }}</td>
+                <td>
+                    {% if perms.auth.view_group %}
+                    <a type="button" class="btn btn-primary btn-sm" href="{% url 'groupuser_list' %}?gid={{ group_obj.id }}" id="get_user_groups" >成员列表</a>
+                    {% endif %}
+                    {% if perms.auth.view_permission %}
+                    <a type="button"  class="btn btn-success btn-sm" href="{% url 'group_permission_list' %}?gid={{ group_obj.id }}" >查看权限</a>
+                    {% endif %}
+                    {% if perms.auth.change_permission %}
+                    <a class="btn btn-info btn-sm" href="{% url 'group_permission_modify' %}?gid={{ group_obj.id }}">修改权限</a>
+                    {% endif %}
+                    {% if perms.auth.delete_group %}
+                        <button type="button" class="btn btn-danger btn-sm del_group" groupid="{{ group_obj.id }}" groupname="{{ group_obj.name }}">删除</button>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+
+<div class="modal fade" id="create_group" aria-hidden="true">
+	<div class="modal-dialog">
+	    <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4>添加group</h4>
+            </div>
+            <div class="modal-body form-inline">
+                <div class="form-group">
+                    <label for="exampleInputName2">用户组：</label>
+                    <input type="text" class="form-control" id="form_groupname" placeholder="请输入用户组名称" />
+                </div>
+                <button class="btn btn-primary" id="create_group_btn">提交</button>
+            </div>
+            <div class="modal-footer">
+                <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="取消">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+$(function () {
+        //创建用户组
+    $("#add_group").click(function(){
+        var create_group_modal = $("#create_group");
+        create_group_modal.modal("show");
+
+        $("#create_group_btn").click(function(){
+            var form_groupname_input = $("#form_groupname");
+            var group_name = form_groupname_input.val();
+            form_groupname_input.val("");
+
+            if (group_name == ""){
+                swal("添加失败", "用户组名不能为空", "error");
+                return false
+            }
+            create_group_modal.modal("hide");
+            $.ajax({
+            url: "{% url 'group_create' %}",
+            type: "post",
+            data: {"name": group_name},
+            success: function (res) {
+                if (res.status == 0){
+                    swal({
+                        "title": "用户组添加成功",
+                        "text": "",
+                        "type": "success"
+                    }, function(){
+                        setTimeout(function(){
+                            window.location.reload();
+                        },100)
+                    });
+                }else{
+                    swal("操作失败", res.errmsg, "error");
+                }
+            },
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken');
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+        })
+        })
+    });
+
+    //删除用户组
+    $(".del_group").click(function () {
+        var group_id = $(this).attr("groupid");
+        var gname = $(this).attr("groupname");
+        //触发swal插件，询问是否删除
+       swal({
+          title: "你确定?",
+          text: "请确认要删除"+gname+"用户组吗？",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "是的，删除它",
+           cancelButtonText: "取消",
+          closeOnConfirm: false
+        }, function(){
+           $.ajax({
+               url: "{% url 'group_delete' %}",
+               type: "delete",
+               data: {"gname": group_id },
+               success: function (res) {
+                   if (res.status == 0) {
+                       swal({
+                           "title": "删除成功",
+                           "text": "",
+                           "type": "success"
+                       }, function () {
+                           setTimeout(function () {
+                               window.location.reload();
+                           }, 100)
+                       });
+                   } else {
+                       swal("删除失败", res.errmsg, "error");
+                   }
+               },
+               beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken');
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+            });
+            return false
+            });
+
+    })
+})
+</script>
+{% endblock %}
