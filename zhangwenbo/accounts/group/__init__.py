@@ -34,7 +34,7 @@ class GroupCreateView(LoginRequiredMixin, View):
                 ret['errmsg'] = e.args
         else:
             ret['status'] = 1
-            ret['errmsg'] = "输入无效内容"
+            ret['errmsg'] = "没有输入内容，请重新输入"
         return JsonResponse(ret)
 
         # '''
