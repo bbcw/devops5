@@ -1,0 +1,200 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+
+    <table class="table table-striped">
+     {% if perms.auth.add_group %}
+        <caption>
+            <button type="button", class="btn btn-primary" id="add_group">创建用户组</button>
+        </caption>
+     {% endif %}
+        <tr>
+            <th>#</th>
+            <th>组名</th>
+            <th>操作</th>
+        </tr>
+        {% for group_obj in object_list %}
+            <tr>
+                <td >{{ forloop.counter }}</td>
+                <td id="g_name">{{ group_obj.name }}</td>
+                <td>     {% if perms.auth.view_group_users %}
+                    <a type="button" class="btn btn-primary btn-sm" href="{% url 'group_userlist' %}?gid={{ group_obj.id }}" >成员列表</a>
+                   {% endif%}
+                     {% if perms.auth.view_group_permission %}
+                    <a  class="btn btn-success btn-sm" href='{%  url "show_group_permission" %}?gid={{ group_obj.id }}'>查看权限</a>
+                   {% endif%}
+                     {% if perms.auth.change_group_permission %}
+                    <a  class="btn btn-info btn-sm" href='{%  url "group_permission_modify" %}?gid={{ group_obj.id }}'>修改权限</a>
+                    {% endif%}
+                    {% if perms.auth.delete_group %}
+                    <button type="button" class="btn btn-danger btn-sm del_group" groupid="{{ group_obj.id }}">删除</button>
+                    {% endif%}
+
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div class="modal fade" id="create_group" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4>添加group</h4>
+                </div>
+                <div class="modal-body form-inline">
+                    <div class="form-group">
+                        <label for="exampleInputName2">用户组：</label>
+                        <input type="text" class="form-control" id="form_groupname" placeholder="请输入用户组名称" />
+                    </div>
+                    <button class="btn btn-primary" id="create_group_btn">提交</button>
+                </div>
+                <div class="modal-footer">
+                    <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="取消">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="del_group" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4>确定要删除下面群组吗</h4>
+                </div>
+                <div class="modal-body form-inline">
+                    <div id="del_gname" class="form-group" style="height: 50px">
+                        出错啦
+                    </div>
+                    <div><button  class="btn btn-primary" id="del_group_btn">确定删除</button></div>
+                </div>
+                <div class="modal-footer">
+                    <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="取消">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+{% endblock %}
+
+
+
+
+{% block js %}
+    <script>
+        $(function () {
+            $("#add_group").click(function () {
+{#                $("create_group").modal("show");#}
+                var create_group_modal = $("#create_group");
+                $("#form_groupname").val("");
+                create_group_modal.modal("show");
+
+
+                                   //添加群组
+            $("#create_group_btn").click(function () {
+                var group_name = $("#form_groupname").val();
+                if (group_name.length <= 2){
+                    swal("组名不能少于2个字","","error");
+                }
+                else{
+                    create_group_modal.modal("hide");
+                   $.ajax({
+                    url: "{% url 'group_create' %}",
+                    type: "POST",
+                    data: {"group_name": group_name},
+                    success: function (res) {
+                        if(res.status != 0){
+                            swal("失败了",res.errmsg,"error")
+                        }else{
+                         swal({
+                                title:"添加群组成功",
+                                text:res.errmsg,
+                                type:'success'
+                        },function(){
+                            setTimeout(function () {
+                                window.location.reload()
+                            },50)
+                            })
+                        }
+                    },
+                    beforeSend: function (xhr, settings) {
+                        var csrftoken = getCookie('csrftoken');
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                        }
+                    }
+                    });
+                }
+            });
+
+
+
+            });
+
+
+
+                 //删除群组
+        $(".del_group").click(function () {
+           var gid =$(this).attr("groupid");
+           var gname = $(this).parents('td').siblings("#g_name").text();
+           console.log(gname);
+           $("#del_gname").text("确定要删除"+"："+gname);
+           $("#del_group").modal('show');
+           $("#del_group_btn").click(function () {
+               $("#del_group").modal('hide');
+              $.ajax({
+                    url: "{% url 'group_del' %}",
+                    type: "DELETE",
+                    data: {"gid": gid},
+                    success: function (res) {
+                        if(res.status != 0){
+                            swal({
+                                title:"删除失败了",
+                                text:res.errmsg,
+                                type:'error'
+                        },function(){
+                            setTimeout(function () {
+                                window.location.reload()
+                            },50)
+                            })
+                        }else{
+                         swal({
+                                title:"删除群组成功",
+                                text:res.errmsg,
+                                type:'success'
+                        },function(){
+                            setTimeout(function () {
+                                window.location.reload()
+                            },50)
+                            })
+                        }
+                    },
+                    beforeSend: function (xhr, settings) {
+                        var csrftoken = getCookie('csrftoken');
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                        }
+                    }
+                    });
+           });
+          });
+
+
+        });
+
+
+
+
+
+
+
+    </script>
+{% endblock %}
+

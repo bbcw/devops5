@@ -1,0 +1,29 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+    <caption>
+        群组 [<span style="color:red"> {{ group_mingzi }} </span>]  具有的权限：
+    </caption>
+        <tr>
+            <th>#</th>
+            <th>ID</th>
+            <th>app</th>
+            <th>model</th>
+            <th>codename</th>
+            <th>description</th>
+        </tr>
+        {% for permission in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ permission.id }}</td>
+                <td>{{ permission.content_type.app_label }}</td>
+                <td>{{ permission.content_type.model }}</td>
+                <td>{{ permission.codename }}</td>
+                <td class="permission_name">{{ permission.name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
+

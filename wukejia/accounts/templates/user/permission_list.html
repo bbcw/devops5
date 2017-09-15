@@ -1,0 +1,148 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <caption>
+
+           <div>
+           <form class="form-inline">
+          <div class="form-group">
+            <div class="input-group">
+              <input type="text" name="search_word"  value="{{ search_word }}" class="form-control" >
+            </div>
+          </div>
+            <button type="submit" class="btn btn-primary">搜搜  &nbsp;<span  style="font-size:9px; color: gold">[共&nbsp;{{ allnums }}&nbsp;条]</span></button>
+        <a class="btn btn-primary" href="{% url 'permission_create' %}">创建权限</a> </form>
+           </div>
+        </caption>
+        <tr>
+{#            <th>#</th>#}
+            <th>ID</th>
+            <th>app</th>
+            <th>model</th>
+            <th>codename</th>
+            <th>description</th>
+            <th>操作</th>
+        </tr>
+        {% for permission in object_list %}
+            <tr>
+{#                <td>{{ forloop.counter }}</td>#}
+                <td>{{ permission.id }}</td>
+                <td>{{ permission.content_type.app_label }}</td>
+                <td>{{ permission.content_type.model }}</td>
+                <td>{{ permission.codename }}</td>
+                <td class="permission_name">{{ permission.name }}</td>
+                <td>
+                    <button  data='{"pid":"{{ permission.id }}"}' class="btn btn-primary change_permission_name" >修改</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+<div class="panel-default">
+	<center>
+		<ul class="pagination">
+			<li><a href="{{ request.path }}?page=1{{ search_neirong }}">首页</a></li>
+			{% if page_obj.has_previous %}
+				<li><a href="{{ request.path }}?page={{ page_obj.previous_page_number }}{{ search_neirong }}">上一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>上一页</a></li>
+			{% endif %}
+			{% for i in page_range %}
+				<li {% if page_obj.number == i %}class="active"{% endif %}><a href="{{ request.path }}?page={{ i }}{{ search_neirong }}">{{ i }}</a></li>
+			{% endfor %}
+			{% if page_obj.has_next %}
+				<li><a href="{{ request.path }}?page={{ page_obj.next_page_number }}{{ search_neirong }}">下一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>下一页</a></li>
+			{% endif %}
+			<li><a href="{{ request.path }}?page={{ page_obj.paginator.num_pages }}{{ search_neirong }}">末页</a></li>
+		</ul>
+	</center>
+</div>
+
+
+<div class="modal fade" id="change_permission_name_modal" aria-hidden="true" >
+	<div class="modal-dialog">
+	    <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 id="change_permission_name_modal_title"></h4>
+            </div>
+            <div class="modal-body form-inline">
+                <div class="col-xs-8">
+                        <label for="exampleInputName2">新描述：</label>
+                        <input type="text" class="form-control" id="form_permission_name" placeholder="请输入新的权限描述" />
+                </div>
+                <button class="btn btn-primary" id="form_permission_name_btn">提交</button>
+            </div>
+            <div class="modal-footer">
+                <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="取消">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(function () {
+            var pid;
+            var click_obj;
+            var change_permission_name_modal = $("#change_permission_name_modal");
+            $(".change_permission_name").click(function () {
+                click_obj = $(this);
+                pid = JSON.parse(click_obj.attr("data")).pid;
+                var oldname = click_obj.parents("td").siblings(".permission_name").text();
+
+                $("#change_permission_name_modal_title").text("原描述："+oldname);
+                $("#form_permission_name").val("");
+                change_permission_name_modal.modal("show");
+            });
+
+
+        $("#form_permission_name_btn").click(function () {
+            change_permission_name_modal.modal("hide");
+            var newname =  $("#form_permission_name").val();
+            console.log(newname);
+            $.ajax({
+                url: "{% url 'permission_change_name' %}",
+                type: "POST",
+                data: {"pid": pid,'name':newname},
+                success: function (res) {
+                    if (res.status != 0){
+                        swal("操作失败", res.errmsg, "error")
+                    }else{
+                         swal({
+                            "title": "操作成功",
+                            "text": res.errmsg,
+                            "type": "success"
+                        }, function(){
+                            setTimeout(function(){
+                                click_obj.parents("td").siblings(".permission_name").text(newname);
+                                {#  window.location.reload()#}
+                            },100)
+                        });
+                    }
+                },
+                beforeSend: function (xhr, settings) {
+                    var csrftoken = getCookie('csrftoken');
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                    }
+                }
+            });
+        })
+
+
+
+        });
+
+
+
+    </script>
+{% endblock %}

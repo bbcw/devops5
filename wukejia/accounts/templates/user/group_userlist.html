@@ -1,0 +1,78 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+           <th>用户名</th>
+           <th>email</th>
+           <th>状态</th>
+           <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user_obj in object_list %}
+        <tr>
+            <td>{{ user_obj.username }}</td>
+            <td>{{ user_obj.email }}</td>
+            <td class="status">
+                {% if user_obj.is_active %}
+                    <span class="glyphicon glyphicon-ok-circle text-success"></span>正常
+                {% else %}
+                    <span class="glyphicon glyphicon-warning-sign text-warning"></span>禁止
+                {% endif %}
+            </td>
+            <td>
+                {% if perms.auth.delete_group_users %}
+                <button type="button" class="btn btn-sm btn-danger delete" data='{"uid":"{{ user_obj.id }}","gid":"{{ gid }}" }'>从组内删除</button>
+                {% else %}
+                没有操作权限
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block js %}
+<script>
+$(function () {
+    $(".delete").click(function () {
+        var click_obj = $(this);
+        var data = JSON.parse(click_obj.attr("data"));
+        var gid = data.gid;
+        var uid = data.uid;
+        // 从组中删除 用户
+        $.ajax({
+            url: "{% url 'user_modify_status' %}",
+            type: "DELETE",
+            data: {"uid": uid,"gid":gid},
+            success: function (res) {
+                if (res.status != 0){
+                    swal("删除失败", res.errmsg, "error")
+                }else{
+                    swal({
+                        title:"删除成功",
+                        text:res.errmsg,
+                        type:'success'
+                    },function () {
+                     setTimeout(function () {
+                         click_obj.parents("tr").css('display','none')
+                    },50)
+                    });
+                }
+            },
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken');
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken)
+                }
+            }
+        });
+
+    })
+})
+
+</script>
+{% endblock %}
