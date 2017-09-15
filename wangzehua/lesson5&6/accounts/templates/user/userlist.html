@@ -17,6 +17,10 @@
             <th>用户名</th>
             <th>状态</th>
             <th>email</th>
+            <th>profile:name</th>
+            <th>profile:weixin</th>
+            <th>profile:phone</th>
+            <th>上次登录时间</th>
             <th>操作</th>
         </tr>
         {% for user_obj in object_list %}
@@ -31,6 +35,10 @@
                     {% endif %}
                 </td>
                 <td>{{ user_obj.email }}</td>
+                <td>{{ user_obj.profile.name }}</td>
+                <td>{{ user_obj.profile.weixin }}</td>
+                <td>{{ user_obj.profile.phone }}</td>
+                <td>{{ user_obj.last_login }}</td>
                 <td>
                     <div class="btn-group">
                     <div class="btn-group">
@@ -132,7 +140,6 @@
 {% endblock %}
 
 {% block js %}
-    {% if perms.change_user %}
     <script>
         function change_user_status(status_td_obj, status) {
             if (status == "true"){
@@ -230,5 +237,4 @@
     });
 
     </script>
-    {% endif %}
 {% endblock %}

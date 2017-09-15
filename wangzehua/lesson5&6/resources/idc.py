@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
+from .forms import CreateIdcForm
 
 class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = "idc/add_idc.html"
@@ -14,6 +15,7 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     permission_redirect_field_name = "index"
 
     def post(self, request):
+        '''
         print(request.POST)
         print(reverse("success", kwargs={"next": "user_list"}))
 
@@ -50,7 +52,7 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             errmsg = "人为失败"
             return redirect("error", next="idc_add", msg=errmsg)
 
-        '''
+
         try:
             data.save()
             return redirect("success", next="idc_list")
@@ -58,7 +60,21 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             errmsg = "人为失败"
             return redirect("error", next="idc_add", msg=errmsg)
         #return HttpResponse("")
+
         '''
+        idcform = CreateIdcForm(request.POST)
+        if idcform.is_valid():
+            print("验证成功")
+            print(idcform.cleaned_data)
+            idc = Idc(**idcform.cleaned_data)
+            try:
+                idc.save()
+                return redirect("success", next="idc_list")
+            except Exception as e:
+                return redirect("error", next="idc_add", msg=e.args)
+        else:
+            return redirect("error", next="idc_add", msg=json.dumps(json.loads(idcform.errors.as_json()), ensure_ascii=False))
+
 
 class IdcListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = "idc/idc_list.html"

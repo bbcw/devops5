@@ -7,7 +7,8 @@ from django.http import HttpResponse
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
-
+from .forms import CreatePermissionForm
+import json
 
 class PermissionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = "user/permission_list.html"
@@ -51,6 +52,7 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
         return context
 
     def post(self, request):
+        '''
         print(request.POST)
         content_type_id = request.POST.get("content_type")
         codename = request.POST.get("codename")
@@ -70,3 +72,18 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
             return redirect("error", next="permission_list", msg=e.args)
 
         return redirect("success", next="permission_list")
+        '''
+
+        permissionform = CreatePermissionForm(request.POST)
+        if permissionform.is_valid():
+            print("authority success")
+            print(permissionform.cleaned_data)
+            permission = Permission(**permissionform.cleaned_data)
+            try:
+                print("permission")
+                permission.save()
+                return redirect("success", next="permission_list")
+            except Exception as e:
+                return redirect("error", next="permission_list", msg=e.args)
+        else:
+            return redirect("error", next="permission_list", msg=json.dumps(json.loads(permissionform.errors.as_json()), ensure_ascii=False))

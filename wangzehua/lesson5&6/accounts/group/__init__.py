@@ -8,6 +8,8 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
+from .forms import CreateGroupForm
+import json
 
 class GroupListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = "user/grouplist.html"
@@ -116,6 +118,7 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     permission_redirect_field_name = "index"
 
     def post(self, request):
+        '''
         ret = {"status":0}
         groupname = request.POST.get("name", "")
         if not groupname:
@@ -137,6 +140,26 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
             ret['errmsg'] = "用户组已存在"
 
         return JsonResponse(ret)
+        '''
+        ret = {"status": 0}
+        groupform = CreateGroupForm(request.POST)
+        if groupform.is_valid():
+            print("验证成功")
+            print(groupform.cleaned_data)
+            group_name = Group(**groupform.cleaned_data)
+            try:
+                g = Group(name=group_name)
+                g.save()
+                return JsonResponse(ret)
+            except Exception as e:
+                ret['status'] = 1
+                ret['errmsg'] = "用户组已存在"
+                return JsonResponse(ret)
+        else:
+            ret['status'] = 1
+            ret['errmsg'] = json.dumps(json.loads(groupform.errors.as_json()), ensure_ascii=False)
+            return JsonResponse(ret)
+
 
     '''
     @method_decorator(login_required)
