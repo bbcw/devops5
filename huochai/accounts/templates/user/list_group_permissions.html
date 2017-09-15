@@ -1,0 +1,22 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+    <table class="table table-striped">
+        <tr>
+            <th>#</th>
+            <th>APP</th>
+            <th>Model</th>
+            <th>codename</th>
+            <th>name</th>
+        </tr>
+        {% for group_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ group_obj.content_type.app_label }}</td>
+                <td>{{ group_obj.content_type.model }}</td>
+                <td>{{ group_obj.codename }}</td>
+                <td>{{ group_obj.name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
