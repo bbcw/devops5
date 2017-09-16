@@ -19,6 +19,9 @@
             <th>USERNAME</th>
             <th>STATUS</th>
             <th>EMAIL</th>
+            <th>CNAME</th>
+            <th>PHONE</th>
+            <th>WEIXIN</th>
             <th>ACTION</th>
         </tr>
     </thead>
@@ -34,6 +37,9 @@
                 {% endif %}
             </td>
             <td>{{ user_obj.email }}</td>
+            <td>{{ user_obj.profile.cname }}</td>
+            <td>{{ user_obj.profile.phone }}</td>
+            <td>{{ user_obj.profile.weixin }}</td>
 
             {% if perms.auth.change_user %}
             <td>

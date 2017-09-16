@@ -12,6 +12,9 @@ from django.contrib.auth.decorators import login_required, permission_required
 #调用自定义的验证视图
 from accounts.mixins import PermissionRequiredMixin
 
+from .forms import CreateIdcForm
+import json
+
 class IdcListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = "idc/idclist.html"
     model = Idc
@@ -38,26 +41,45 @@ class CreateIdcView(LoginRequiredMixin, TemplateView):
     template_name = "idc/add_idc.html"
 
     def post(self, request):
+#
+#        #print(request.POST)
+#        #print(reverse("success",kwargs={"next":"user_list"}))
+#        #return redirect("success", next="user_list")
+#        #return redirect("error",next="idc_add", msg="Please resubmit!!!")
+#
+#        ret = {}
+#        data = {}
+#
+#        for k in request.POST:
+#            data[k] = request.POST.get(k,"")
+#        data.pop("csrfmiddlewaretoken")
+#        #print(data)
+#        #if not data["name"]:
+#        #    ret["msg"] = "name is null!"
+#        #    return redirect("error", next="idc_add", msg=ret["msg"])
+#        try:
+#            idc = Idc(**data)
+#            idc.save()
+#            return redirect("success", next="idc_list")
+#        except Exception as e:
+#            #ret["msg"] = "Idc already exists or other errors"
+#            return redirect("error",next="idc_add", msg=e.args)
 
-        #print(request.POST)
-        #print(reverse("success",kwargs={"next":"user_list"}))
-        #return redirect("success", next="user_list")
-        #return redirect("error",next="idc_add", msg="Please resubmit!!!")
 
-        ret = {}
-        data = {}
+#   @method_decorator(permission_required("resources.add_idc", login_url="idc_list"))
+#   def get(self, request, *args, **kwargs):
+#       return super(IdcListView, self).get(request, *args, **kwargs)
 
-        for k in request.POST:
-            data[k] = request.POST.get(k,"")
-        data.pop("csrfmiddlewaretoken")
-        #print(data)
-        #if not data["name"]:
-        #    ret["msg"] = "name is null!"
-        #    return redirect("error", next="idc_add", msg=ret["msg"])
-        try:
-            idc = Idc(**data)
-            idc.save()
-            return redirect("success", next="idc_list")
-        except Exception as e:
-            #ret["msg"] = "Idc already exists or other errors"
-            return redirect("error",next="idc_add", msg=e.args)
+
+        # 表单验证
+        idcform = CreateIdcForm(request.POST)
+        if idcform.is_valid():
+
+           idc = Idc(**idcform.cleaned_data)
+           try:
+               idc.save()
+               return redirect("success", next="idc_list")
+           except Exception as e:
+               return redirect("error",next="idc_add", msg=e.args)
+        else:
+           return redirect("error",next="idc_add", msg=json.dumps(json.loads(idcform.errors.as_json()), ensure_ascii=False))

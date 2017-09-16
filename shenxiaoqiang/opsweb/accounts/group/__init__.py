@@ -4,36 +4,57 @@ from django.http import JsonResponse, HttpResponse, Http404, QueryDict
 from django.db import IntegrityError
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.utils.decorators import method_decorator
-# from django.contrib.auth.decorators import login_required, permission_required
 
-from accounts.mixins import PermissionRequiredMixin
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required
+
+# from accounts.mixins import PermissionRequiredMixin
+
+from accounts.forms import CreateGroupForm
+import json
 
 class GroupListView(LoginRequiredMixin, ListView):
     model = Group
     template_name = "user/grouplist.html"
 
+# class GroupCreateView(LoginRequiredMixin, View):
 class GroupCreateView(LoginRequiredMixin, View):
 
     def post(self, request):
         ret = {"status":0}
-        group_name = request.POST.get("name","")
-        if not group_name:
-            ret["status"] = 1
-            ret["errmsg"] = "Group name is Null!!!"
-
-        try:
-            g = Group(name=group_name)
-            g.save()
-        except IntegrityError as e:
-            # ret["status"] = 1
-            # ret["errmsg"] = "用户组已存在!!!"
-            return redirect("error", next="group_list", msg="Group is not exist!")
-        return JsonResponse(ret)
-
+    #     group_name = request.POST.get("name","")
+    #     if not group_name:
+    #         ret["status"] = 1
+    #         ret["errmsg"] = "Group name is Null!!!"
+    #
+    #     try:
+    #         g = Group(name=group_name)
+    #         g.save()
+    #     except IntegrityError as e:
+    #         # ret["status"] = 1
+    #         # ret["errmsg"] = "用户组已存在!!!"
+    #         return redirect("error", next="group_list", msg="Group is not exist!")
+    #     return JsonResponse(ret)
+    #
     # @method_decorator(permission_required("auth.add_group", login_url="group_list"))
     # def get(self, request, *args, **kwargs):
     #     return super(GroupCreateView, self).get(request, *args, **kwargs)
+
+        # # 表单验证
+        groupform = CreateGroupForm(request.POST)
+
+        if groupform.is_valid():
+            group = Group(**groupform.cleaned_data)
+            try:
+                group.save()
+                # return redirect("success", next="group_list", ret={"status":0})
+                return JsonResponse(ret)
+            except Exception as e:
+                return redirect("error", next="group_add", msg=e.args)
+        else:
+            return redirect("error", next="group_add",
+                            msg=json.dumps(json.loads(groupform.errors.as_json()), ensure_ascii=False))
+
 
 class GroupUserListView(LoginRequiredMixin, TemplateView):
     template_name = "user/groupuserlist.html"
@@ -50,6 +71,8 @@ class GroupUserListView(LoginRequiredMixin, TemplateView):
         context['group_user_list'] = list(users.values("id", "username", "email"))
         context['gid'] = gid
         return context
+
+
 
 class ModifyGroupListView(LoginRequiredMixin, View):
 
@@ -76,6 +99,10 @@ class ModifyGroupListView(LoginRequiredMixin, View):
             Group.objects.filter(name__icontains=group_obj).delete()
         return JsonResponse(ret)
 
+
+    @method_decorator(permission_required("auth.delete_group", login_url="group_list"))
+    def get(self, request, *args, **kwargs):
+        return super(ModifyGroupListView, self).get(request, *args, **kwargs)
 
 class ModifyGroupPermissionListView(LoginRequiredMixin, TemplateView):
     template_name = "user/modify_group_permissions.html"
@@ -135,6 +162,10 @@ class ModifyGroupPermissionListView(LoginRequiredMixin, TemplateView):
         
         return JsonResponse(ret)
 
+    @method_decorator(permission_required("permission.delete_permission", login_url="/"))
+    def get(self, request, *args, **kwargs):
+        return super(ModifyGroupPermissionListView, self).get(request, *args, **kwargs)
+
 
 
 class GroupPermissionListView(LoginRequiredMixin, ListView):
@@ -174,4 +205,5 @@ class GroupPermissionListView(LoginRequiredMixin, ListView):
         context['group_id'] = group_id
         context.update(search_data.dict())
         context['search_data'] = "&"+search_data.urlencode()
-        return context 
+        return context
+

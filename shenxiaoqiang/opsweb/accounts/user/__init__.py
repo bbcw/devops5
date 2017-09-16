@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse, QueryDict
 
 from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import reverse
 
 from accounts.mixins import PermissionRequiredMixin
@@ -151,5 +151,9 @@ class ModifyUserGroup(LoginRequiredMixin, View):
         #2.通过组删除用户
         # group_obj.user_set.remove(user_obj)
         return JsonResponse(ret)
+
+    # @method_decorator(permission_required("auth.add_group", login_url="user_list"))
+    # def get(self, request, *args, **kwargs):
+    #     return super(ModifyUserGroup, self).get(request, *args, **kwargs)
 
 

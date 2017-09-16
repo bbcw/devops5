@@ -15,7 +15,11 @@
         <td>{{ user_obj.username }}</td>
         <td>{{ user_obj.email }}</td>
         <td>
+            {% if perms.delete_group %}
             <button type="button" class="btn btn-danger btn-sm delete_user_from_group" data='{"user_id": "{{ user_obj.id }}", "group_id":"{{ gid }}"}'>删除</button>
+            {% else %}
+            <button type="button" class="disabled btn btn-danger btn-sm delete_user_from_group" data='{"user_id": "{{ user_obj.id }}", "group_id":"{{ gid }}"}'>删除</button>
+            {% endif %}
         </td>
     </tr>
     {% endfor %}
