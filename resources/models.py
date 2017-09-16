@@ -12,3 +12,6 @@ class Idc(models.Model):
 
     class Meta:
         db_table = "resources_idc"      # 数据库表名
+        permissions = (
+            ("view_idc", "访问 IDC 页面"),
+        )

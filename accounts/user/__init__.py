@@ -3,9 +3,10 @@ from django.views.generic import View, TemplateView, ListView
 from django.contrib.auth.models import User, Group
 from django.http import JsonResponse, HttpResponse, QueryDict
 from django.contrib.auth.mixins import LoginRequiredMixin
+from accounts.models import Profile
 
 
-class UserListView(LoginRequiredMixin ,ListView):
+class UserListView(LoginRequiredMixin, ListView):
     """用户展示视图"""
 
     template_name = "user/userlist.html"
@@ -81,7 +82,7 @@ class UserListView(LoginRequiredMixin ,ListView):
         return page_range
 
 
-class ModifyUserStatusView(View):
+class ModifyUserStatusView(LoginRequiredMixin ,View):
     """响应后端 ajax 请求修改用户状态的逻辑"""
 
     def post(self, request):
@@ -104,23 +105,25 @@ class ModifyUserStatusView(View):
         return JsonResponse(ret, safe=True)
 
 
-class ModifyUserGroupView(View):
+class ModifyUserGroupView(LoginRequiredMixin ,View):
     """修改用户和组关系的逻辑"""
 
     def get(self, request):
-        """展示用户组列表"""
-        print(request.GET)
-        uid = request.GET.get('uid', '')
-        group_objs = Group.objects.all()
+        """模态框内展示用户组列表"""
+        # print(request.GET)
+        uid = request.GET.get('uid', '')    # 取前端传递的 uid
+        group_objs = Group.objects.all()    # 获取全部组的 queryset
+        # print(type(group_objs))
 
         try:
-            user_obj = User.objects.get(id=uid)
-
+            user_obj = User.objects.get(id=uid)     # 获取指定用户对象
         except User.DoesNotExist:
             pass
         else:
+            """
+            
+            """
             group_objs = group_objs.exclude(id__in=user_obj.groups.values_list("id"))
-
         return JsonResponse(list(group_objs.values("id", "name")), safe=False)
 
     def put(self, request):
@@ -149,12 +152,13 @@ class ModifyUserGroupView(View):
         return JsonResponse(ret)
 
     def delete(self, request):
+        """将用户从用户组中删除"""
         ret = {"status": 0}
-        data = QueryDict(request.body)
+        data = QueryDict(request.body)      # 获取请求全部内容
         try:
             user_obj = User.objects.get(id=data.get("uid", ""))
             group_obj = Group.objects.get(id=data.get("gid", ""))
-            user_obj.groups.remove(group_obj)
+            user_obj.groups.remove(group_obj)   # 从组内移除用户
             # group_obj.user_set.remove(user_obj)
         except User.DoesNotExist:
             ret["status"] = 1
@@ -162,5 +166,4 @@ class ModifyUserGroupView(View):
         except Group.DoesNotExist:
             ret["status"] = 1
             ret['errmsg'] = "用户组不存在"
-
         return JsonResponse(ret)

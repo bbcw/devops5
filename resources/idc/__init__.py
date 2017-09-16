@@ -7,6 +7,12 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User, Group
 from resources.models import Idc
 from django.core import serializers
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required
+import json
+from accounts.mixins import PermissionRequiredMixin
+from resources.forms import CreateIdcForm
 
 # class CreateIdcView(TemplateView):
 
@@ -19,46 +25,40 @@ from django.core import serializers
 #         return redirect("error", next="idc_add", msg="人为失败")
         # return HttpResponse("")
 
-class IdcListView(ListView):
+class IdcListView(LoginRequiredMixin, ListView):
     """IDC 信息展示逻辑"""
+    permission_required = "resources.add_idc"       # 覆盖父类 PermissionRequiredMixin 类属性
     template_name = "idclist.html"
     model = Idc
+    permission_redirect_field_name = "dashboard"        # 覆盖父类 PermissionRequiredMixin 类属性
+
+    # @method_decorator(permission_required("resources.add_idc", login_url=reverse("dashboard")))
+    # def get(self, request, *args, **kwargs):
+    #     return super(IdcListView, self).get(request, *args, **kwargs)
 
 
-class AddIdcView(TemplateView):
+class CreateIdcView(LoginRequiredMixin ,TemplateView):
     """增加 IDC 逻辑"""
     template_name = "add_idc.html"
 
     def post(self, request):
-        # forms = IdcForm(request.POST)
+        idcform = CreateIdcForm(request.POST)
+        if idcform.is_valid():
+            idc = Idc(**idcform.cleaned_data)
+            try:
+                idc.save()
+                return redirect("success", next="idc_list")
+            except Exception as e:
+                return redirect("error", next="idc_list", msg=e.args)
+
+        else:
+            return redirect("error", next="idc_list",
+                            msg=json.dumps(json.loads(idcform.errors.as_json()), ensure_ascii=False))
+
         # print(forms)      # 取表单数据，是一个dict
-        data = {
-            "name": request.POST.get('name', ''),
-            "idc_name": request.POST.get('idc_name', ''),
-            "address": request.POST.get('address', ''),
-            "phone": request.POST.get('user_phone', ''),
-            "email": request.POST.get('mail', ''),
-            "username": request.POST.get('username', '')
-        }
-
-        errmsg = []
-        if not name:
-            errmsg.append("idc 简称不能为空")
-        if not idc_name:
-            errmsg.append("idc 名称不能为空")
-        if errmsg:
-            return redirect("error", next="idc_add", msg=json.dumps(errmsg))
-
-        try:
-            idc = Idc(**data)
-            idc.save()
-        except Exception as e:
-            # return redirect(reverse("idc_add"))
-            return redirect("error", next="idc_add", msg=e.args)
-        return redirect(reverse("idc_list"))
 
 
-class DeleteIdcView(View):
+class DeleteIdcView(LoginRequiredMixin ,View):
     """删除 Idc 的逻辑，响应前端 ajax 请求"""
     def post(self, request):
         ret = {'status': 0}
@@ -73,8 +73,8 @@ class DeleteIdcView(View):
         return JsonResponse(ret)
 
 
-class IdcMoreView(View):
-    """IDC 详情按钮的逻辑，响应后端的需求"""
+class IdcMoreView(LoginRequiredMixin ,View):
+    """IDC 详情按钮的逻辑，响应后端的 ajax 请求"""
     def get(self, request):
         idc_id = request.GET.get('idc_id', '')
         # print(idc_id)

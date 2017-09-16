@@ -21,6 +21,9 @@
     <thead>
         <tr>
            <th>用户名</th>
+           <th>中文名</th>
+           <th>手机号</th>
+           <th>微信</th>
            <th>email</th>
            <th>状态</th>
            <th>最后登陆时间</th>
@@ -31,6 +34,9 @@
         {% for user_obj in object_list %}
         <tr>
             <td>{{ user_obj.username }}</td>
+            <th>{{ user_obj.profile.name|default_if_none:'' }}</th>
+            <th>{{ user_obj.profile.phone }}</th>
+            <th>{{ user_obj.profile.wechat }}</th>
             <td>{{ user_obj.email }}</td>
             <td class="status">
                 {% if user_obj.is_active %}
@@ -168,20 +174,21 @@ $(function(){
     // 将用户添加到指定组
     var uid ;           // 当前操作的用户id
     var user_to_group_modal = $("#user_to_group_modal");    // 将用户添加到指定组 模态窗
-    var all_user_group = $("#all_user_group"); // 将用户添加到指定组  select
+    var all_user_group = $("#all_user_group");      // 将用户添加到指定组  select
     var user_group_url = "{% url 'user_modify_group' %}";
     $(".user_to_group").click(function(){
         var data = $.parseJSON($(this).attr("data"));
         uid = data.uid;
         $("#user_to_group_modal_title").html("将用户 <b>" + data.username + "</b> 添加到指定组里");
         user_to_group_modal.modal('show');
+
         $.get(user_group_url, {'uid': uid}, function(res){
             html = "<option value=0 >请选择用户组</option>";
             $.each(res, function(i, obj){
                 html += '<option value="'+ obj.id +'"> '+obj.name+'</option>';
             });
             all_user_group.html(html);
-            $('#all_user_group_chosen').css('width','100%')
+            $('#all_user_group_chosen').css('width','100%');
             all_user_group.trigger("chosen:updated")
         });
         return false;

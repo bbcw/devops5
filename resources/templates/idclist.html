@@ -61,7 +61,7 @@ $(function(){
     $(".idc_more").click(function() {
     /* Act on the event */
         // $("#idc_more_modal").modal("show");
-        var data = $(this).attr('data')
+        var data = $(this).attr('data');
         // console.log(data);
         $.ajax({
             url: "{% url 'idc_get' %}",
@@ -70,8 +70,7 @@ $(function(){
             data: {"idc_id": data},
             // 后端返回的 res 是一个 dict
             success: function(res){
-                // console.log("get ok");
-
+                console.log(res);
                 var html = '<table class="table table-striped">';
                 html += '<tr>';
                 html += '<th>name</th>';
