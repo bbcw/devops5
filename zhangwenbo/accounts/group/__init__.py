@@ -8,16 +8,14 @@ from accounts.forms import CreateGroupForm
 from accounts.mixins import PermissionRequiredMixin
 
 class GroupListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    '''
-    用户组列表
-    '''
+    ## 用户组列表
     permission_required = "auth.view_group"
     model = Group
     template_name = "user/grouplist.html"
 
 
 class GroupCreateView(LoginRequiredMixin, View):
-
+    ##创建用户组
     def post(self, request):
         ret = {"status": 0}
         if not request.user.has_perm('auth.add_group'):
@@ -34,25 +32,11 @@ class GroupCreateView(LoginRequiredMixin, View):
                 ret['errmsg'] = e.args
         else:
             ret['status'] = 1
-            ret['errmsg'] = "输入无效内容"
+            ret['errmsg'] = "没有输入内容，请重新输入"
         return JsonResponse(ret)
 
-        # '''
-        # group_name = request.POST.get("name", "")
-        # if not group_name:
-        #     ret['status'] = 1
-        #     ret['errmsg'] = "用户组不能为空"
-        #     return JsonResponse(ret)
-        # try:
-        #     g = Group(name=group_name)
-        #     g.save()
-        # except IntegrityError:
-        #     ret['status'] = 1
-        #     ret['errmsg'] = "用户组已存在"
-        # return JsonResponse(ret)
-        # '''
-
 class GroupDeleteView(LoginRequiredMixin, View):
+    ##删除用户组
     def delete(self, request):
         ret = {"status":0}
         if not request.user.has_perm('auth.delete_group'):
@@ -87,6 +71,7 @@ class GroupDeleteView(LoginRequiredMixin, View):
         return JsonResponse(ret)
 
 class GroupuserListView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    ##查看用户组里用户列表
     permission_required = "auth.view_user"
 
     def get(self, request, *args, **kwargs):
@@ -99,6 +84,7 @@ class GroupuserListView(LoginRequiredMixin, PermissionRequiredMixin, View):
         return render(request, "user/groupuserlist.html", {"object_list": object_list, "groupname":get_group})
 
 class ModifyGroupPermissionList(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    ##修改用户组权限的列表
     permission_required = "auth.change_permission"
     template_name = "user/modify_group_permission.html"
 
@@ -117,6 +103,7 @@ class ModifyGroupPermissionList(LoginRequiredMixin, PermissionRequiredMixin, Tem
             return redirect("error", next="group_list", msg="用户组不存在")
 
     def post(self, request):
+        ##获取前端用户组设置的权限list，设置组权限，否则清空组权限
         permission_id_list = request.POST.getlist("permission", [])
         groupid = request.POST.get("groupid", 0)
         try:
@@ -132,6 +119,7 @@ class ModifyGroupPermissionList(LoginRequiredMixin, PermissionRequiredMixin, Tem
         return redirect("success", next="group_list")
 
 class GroupPermissionListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    ##组权限列表
     permission_required = "auth.view_permission"
     template_name = "user/permission_group_list.html"
 

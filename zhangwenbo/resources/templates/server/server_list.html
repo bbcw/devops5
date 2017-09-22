@@ -1,0 +1,84 @@
+{% extends "public/layout.html" %}
+
+{% block breadcrumb %}
+    <li><a href="{% url 'server_list' %}">服务器列表</a><span class="divider"></span></li>
+{% endblock %}
+{% block body %}
+        <form class="form-inline" role="form" id="server_search">
+            <div class="form-group">
+                <input class="form-control" type="text" name="hostname" value="" placeholder="搜索主机名" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" name="inner_ip" autocomplete="off" value="" placeholder="搜索ip地址">
+            </div>
+            <button type="submit" class="btn btn-primary">查询</button>
+        </form>
+    <table class="table table-striped">
+        <caption>
+            <a  href="{% url 'product_add' %}" class="btn btn-primary" id="add_group">添加业务线</a>
+        </caption>
+        <tr>
+            <th>#</th>
+            <th>主机名</th>
+            <th>ip地址</th>
+            <th>业务线</th>
+            <th>产品线</th>
+            <th>状态</th>
+            <th>cpu</th>
+            <th>disk</th>
+            <th>mem</th>
+            <th>更新时间</th>
+            <th>操作</th>
+        </tr>
+        {% for server_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ server_obj.hostname }}</td>
+                <td>{{ server_obj.inner_ip }}</td>
+                <td>{{ server_obj.os }}</td>
+                <td>{{ server_obj.mac_address }}</td>
+                <td>{{ server_obj.statuses.status_mark }}</td>
+                <td>{{ server_obj.server_cpu }}</td>
+                <td>{{ server_obj.server_disk }}</td>
+                <td>{{ server_obj.server_mem }}</td>
+                <td>{{ server_obj.check_update_time }}</td>
+                <td>
+                   <div class="btn-group">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                            修改
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                            {% if perms.resources.change_server %}
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'server_modify_status' %}?server_id={{ server_obj.id }}&amp;next={% url 'server_list' %}">状态</a></li>
+                            {% endif %}
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/server/modify/product/?server_id=2041&amp;next={% url 'server_list' %}">业务线</a></li>
+                        </ul>
+                   </div><button type="button" class="btn btn-sm btn-warning modify_user_status" status="true" data="2">禁用</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div class="panel-default">
+	<center>
+		<ul class="pagination">
+			<li><a href="{{ request.path }}?page=1{{ search_data }}">首页</a></li>
+			{% if page_obj.has_previous %}
+				<li><a href="{{ request.path }}?page={{ page_obj.previous_page_number }}{{ search_data }}">上一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>上一页</a></li>
+			{% endif %}
+			{% for i in page_range %}
+				<li {% if page_obj.number == i %}class="active"{% endif %}><a href="{{ request.path }}?page={{ i }}{{ search_data }}">{{ i }}</a></li>
+			{% endfor %}
+			{% if page_obj.has_next %}
+				<li><a href="{{ request.path }}?page={{ page_obj.next_page_number }}{{ search_data }}">下一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>下一页</a></li>
+			{% endif %}
+			<li><a href="{{ request.path }}?page={{ page_obj.paginator.num_pages }}{{ search_data }}">末页</a></li>
+		</ul>
+	</center>
+</div>
+{% endblock %}

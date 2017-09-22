@@ -58,7 +58,7 @@
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
-                            {% if perms.auth.add_user %}
+                            {% if perms.auth.change_group %}
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="" data='{"uid": "{{ user_obj.id }}", "username": "{{ user_obj.username }}" }' class="user_to_group">添加到指定组</a></li>
                             {% endif %}
                         </ul>
@@ -173,7 +173,7 @@ $(function(){
         return false
     });
 
-    // 将用户添加到指定组
+    // 将用户添加到指定组--获取用户没有在的用户组
     var uid ;           // 当前操作的用户id
     var user_to_group_modal = $("#user_to_group_modal");    // 将用户添加到指定组 调用模态窗
     var all_user_group = $("#all_user_group"); // 将用户添加到指定组  select
@@ -189,7 +189,7 @@ $(function(){
                 html += '<option value="'+ obj.id +'"> '+obj.name+'</option>';
             });
             all_user_group.html(html);
-            $('#all_user_group_chosen').css('width','100%')
+            $('#all_user_group_chosen').css('width','100%');
             all_user_group.trigger("chosen:updated")
         });
         return false;
