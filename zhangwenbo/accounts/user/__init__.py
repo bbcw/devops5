@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from accounts.mixins import PermissionRequiredMixin
 from django.http import JsonResponse, QueryDict
 from accounts.models import Profile
+from django.shortcuts import redirect
 
 class UserListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):
     permission_required = "auth.view_user"
@@ -51,7 +52,7 @@ class UserListView(LoginRequiredMixin,PermissionRequiredMixin, ListView):
 
 
 class ModifyUserStatusView(LoginRequiredMixin,View):
-
+    ##修改用户状态（启用/禁用）
     def post(self, request):
         uid = request.POST.get("uid", "")
         ret = {"status":0}
@@ -73,7 +74,11 @@ class ModifyUserStatusView(LoginRequiredMixin,View):
 
 
 class ModifyUserGroupView(LoginRequiredMixin, View):
+
     def get(self, request):
+        ##获取用户id，查询出用户没有在的用户组id，并返回
+        if not request.user.has_perm('auth.change_group'):
+            return redirect("error", next="user_list", msg="没有权限，请联系管理员")
         uid = request.GET.get('uid', "")
         group_objs = Group.objects.all()
         try:
@@ -85,8 +90,9 @@ class ModifyUserGroupView(LoginRequiredMixin, View):
         return JsonResponse(list(group_objs.values("id", "name")), safe=False)
 
     def put(self, request):
+        ##将用户添加到指定组--选择用户组提交
         ret = {"status":0}
-        if not request.user.has_perm('auth.add_group'):
+        if not request.user.has_perm('auth.change_group'):
             ret['status'] = 1
             ret['errmsg'] = "没有权限，请联系管理员"
             return JsonResponse(ret)
@@ -109,6 +115,7 @@ class ModifyUserGroupView(LoginRequiredMixin, View):
         return JsonResponse(ret)
 
     def delete(self, request):
+        ##删除用户组里的用户
         ret = {"status":0}
         if not request.user.has_perm('auth.delete_user'):
             ret['status'] = 1

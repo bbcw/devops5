@@ -27,6 +27,7 @@ urlpatterns = [
 
     url(r'^permission/', include([
         url(r'^list/$', permission.PermissionListView.as_view(), name="permission_list"),
-        url(r'^add/$', permission.PermissionAdd.as_view(), name="permission_add")
+        url(r'^add/$', permission.PermissionAdd.as_view(), name="permission_add"),
+        url(r'^modify_name/$', permission.ModifyPermissionName.as_view(), name="modify_permission_name"),
     ]))
 ]

@@ -35,10 +35,8 @@ class CreateIdcView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
         return redirect("error", next="idc_add", msg="idc名称没输入，请重新输入")
         '''
         idcform = CreateIdcForm(request.POST)
-        print(idcform)
         if idcform.is_valid():
             idc = Idc(**idcform.cleaned_data)
-            print(idc)
             try:
                 idc.save()
                 return redirect("success", next="idc_list")

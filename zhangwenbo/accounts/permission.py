@@ -1,6 +1,6 @@
 from django.contrib.auth.models import Permission, Group, ContentType
-from django.views.generic import ListView, TemplateView
-from django.http import HttpResponse
+from django.views.generic import ListView, TemplateView, View
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from accounts.mixins import PermissionRequiredMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -51,25 +51,7 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin,TemplateView):
         return context
 
     def post(self, request):
-        '''
-        content_type_id = request.POST.get("contect_type", "")
-        codename = request.POST.get("codename", "")
-        name = request.POST.get("name", "")
-
-        try:
-            content_type = ContentType.objects.get(pk=content_type_id)
-        except ContentType.DoesNotExist:
-            return redirect("error", next="permission_list", msg="模型不存在")
-
-        if not codename or codename.find(" ") >=0 :
-            return redirect("error", next="permission_list", msg="codename 不合法")
-
-        try:
-            Permission.objects.create(codename=codename, content_type=content_type, name=name)
-        except Exception as e:
-            return redirect("error", next="permission_list", msg=e.args)
-        return redirect("sucess", next="permission_list")
-        '''
+        ##使用Form类处理前端输入的内容
         permissionform = CreatePermissionForm(request.POST)
         if permissionform.is_valid():
             permission = Permission(**permissionform.cleaned_data)
@@ -80,3 +62,30 @@ class PermissionAdd(LoginRequiredMixin, PermissionRequiredMixin,TemplateView):
                 return redirect("error", next="permission_list", msg=e.args)
         else:
             return redirect("error", next="permission_list", msg=json.dumps(json.loads(permissionform.errors.as_json()), ensure_ascii=False))
+
+class ModifyPermissionName(LoginRequiredMixin, View):
+    ##修改权限名称
+    def post(self, request):
+        ret = {"status": 0}
+        if not request.user.has_perm('auth.change_permission'):
+            ret['status'] = 1
+            ret['errmsg'] = "没有权限，请联系管理员"
+            return JsonResponse(ret)
+        get_per_id = request.POST.get("permission_id", "")
+        get_per_name = request.POST.get("permission_name", "")
+        try:
+            permission = Permission.objects.get(pk=get_per_id)
+        except Permission.DoesNotExist:
+            ret['status'] = 1
+            ret['errmsg'] = "权限不存在"
+            return JsonResponse(ret)
+        try:
+            permission.name = get_per_name
+            permission.save()
+        except Exception as e:
+            ret['status'] = 1
+            ret['errmsg'] = e.args
+        return JsonResponse(ret)
+
+
+
