@@ -11,3 +11,4 @@ class Idc(models.Model):
 
     class Meta:
         db_table = "resources_idc"
+
