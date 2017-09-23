@@ -1,0 +1,121 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+
+    <table class="table table-bordered">
+        <caption>
+            <form class="form-inline">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="search_username" value="{{ search_username }}" class="form-control" placeholder="servername">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </caption>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>server_type</th>
+            <th>sn</th>
+            <th>os</th>
+            <th>hostname</th>
+            <th>inner_ip</th>
+            <th>server_cpu</th>
+            <th>server_disk</th>
+            <th>server_mem</th>
+            <th>status</th>
+            <th>check_update_time</th>
+            <th>active</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for server_obj in object_list %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ server_obj.server_type }}</td>
+            <td>{{ server_obj.sn }}</td>
+            <td>{{ server_obj.os }}</td>
+            <td>{{ server_obj.hostname }}</td>
+            <td>{{ server_obj.inner_ip }}</td>
+            <td>{{ server_obj.server_cpu }}</td>
+            <td>{{ server_obj.server_disk }}</td>
+            <td>{{ server_obj.server_mem }}</td>
+            <td>{{ server_obj.serstatus.status }}</td>
+            <td>{{ server_obj.check_update_time }}</td>
+
+            <td>
+                <div class="btn-group">
+                    <div class="btn-group">
+                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                            修改
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'server_status' %}?sid={{ server_obj.id }}" class="modify_status">修改状态</a></li>
+
+                        </ul>
+                    </div>
+                </div> 
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div>
+        <center>
+        <ul class="pagination">
+
+            <li><a href="{% url 'server_list' %}?page=1{{ search_data }}">首页</a></li>
+            {% if page_obj.has_previous %}
+                <li><a href="{% url 'server_list' %}?page={{ page_obj.previous_page_number }}{{ search_data }}">上一页</a></li>
+            {% else %}
+                <li class="disabled"><a>上一页</a></li>
+            {% endif %}
+            {% for p in page_range %}
+                {% if p == page_obj.number %}
+                    <li class="active"><a href="{% url 'server_list' %}?page={{ p }}{{ search_data }}">{{ p }}</a></li>
+                {% else %}
+                    <li><a href="{% url 'server_list' %}?page={{ p }}{{ search_data }}">{{ p }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li><a href="{% url 'server_list' %}?page={{ page_obj.next_page_number }}{{ search_data }}">下一页</a></li>
+            {% else %}
+                <li class="disabled"><a>下一页</a></li>
+            {% endif %}
+            <li><a href="{% url 'server_list' %}?page={{ page_obj.paginator.num_pages }}{{ search_data }}">末页</a></li>
+            <li><a href="#">共{{ page_obj.paginator.num_pages }}页</a></li>
+        </ul>
+        </center>
+    </div>
+    <div class="modal fade" id="user_to_group_modal" aria-hidden="true">
+       <div class="modal-dialog">
+           <div class="modal-content">
+
+               <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4 id="user_to_group_modal_title"></h4>
+               </div>
+               <div class="modal-body clearfix">
+                   <div class="col-xs-8" id="select_service_id">
+                       <select class="chosen-select chosen-transparent form-control" id="all_user_group">
+                       </select>
+                   </div>
+                   <button class="btn btn-primary" id="user_to_group_btn">提交</button>
+               </div>
+               <div class="modal-footer">
+
+                   <input class="btn btn-default" data-dismiss="modal" aria-hidden="true" type="button" value="确定">
+               </div>
+           </div>
+       </div>
+    </div>
+
+{% endblock  %}
+{% block js %}
+    <script>
+
+    </script>
+{% endblock %}
