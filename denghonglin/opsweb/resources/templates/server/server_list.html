@@ -1,0 +1,83 @@
+{% extends "public/layout.html" %}
+
+{% block body %}
+    <table class="table table-striped table-bordered">
+		<caption>
+			<button type="button" class="btn btn-primary" id="add_server">添加服务器</button>
+			<form class="pull-right form-inline">
+				<div class="form-group">
+					<div class="input-group">
+						<input type="text" name="search_hostname" value="{{ search_hostname }}" class="form-control" placeholder="请输入主机名" >
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary">搜索</button>
+			</form>
+		</caption>
+        <tr>
+            <th>#</th>
+            <th>主机名</th>
+            <th>ip地址</th>
+            <th>业务线</th>
+            <th>产品线</th>
+            <th>OS</th>
+            <th>cpu</th>
+            <th>mem</th>
+            <th>last check</th>
+            <th>操作</th>
+        </tr>
+        {% for server_obj in object_list %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ server_obj.hostname }}</td>
+                <td>{{ server_obj.inner_ip }}</td>
+                <td>{{ server_obj.service_id|default_if_none:"" }}</td>
+                <td>{{ server_obj.server_purpose|default_if_none:"" }}</td>
+                <td>{{ server_obj.os }}</td>
+                <td>{{ server_obj.server_cpu }}</td>
+                <td>{{ server_obj.server_mem }}</td>
+                <td>{{ server_obj.check_update_time }}</td>
+                <td>
+
+                    <div class="btn-group">
+                        <div class="btn-group">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+                                修改
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'server_modify_product' %}?id={{ server_obj.id }}&next={{ request.get_full_path|urlencode }}"  >修改业务线</a></li>
+                            </ul>
+                        </div>
+
+                            <button type="button" class="btn btn-sm btn-warning modify_user_status">del</button>
+
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <div class="panel-default">
+	<center>
+		<ul class="pagination">
+			<li><a href="{{ request.path }}?page=1{{ search_data }}">首页</a></li>
+			{% if page_obj.has_previous %}
+				<li><a href="{{ request.path }}?page={{ page_obj.previous_page_number }}{{ search_data }}">上一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>上一页</a></li>
+			{% endif %}
+
+			{% for i in page_range %}
+				<li {% if page_obj.number == i %}class="active"{% endif %}><a href="{{ request.path }}?page={{ i }}{{ search_data }}">{{ i }}</a></li>
+			{% endfor %}
+
+			{% if page_obj.has_next %}
+				<li><a href="{{ request.path }}?page={{ page_obj.next_page_number }}{{ search_data }}">下一页</a></li>
+			{% else %}
+				<li class="previous disabled"><a>下一页</a></li>
+			{% endif %}
+			<li><a href="{{ request.path }}?page={{ page_obj.paginator.num_pages }}{{ search_data }}">末页</a></li>
+		</ul>
+	</center>
+</div>
+{% endblock %}
+
